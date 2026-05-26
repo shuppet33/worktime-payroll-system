@@ -1,0 +1,1 @@
+export {EmployeeProfileCard} from './employee-profile-card.view'

@@ -1,0 +1,1 @@
+export {EmployeePage} from './employee.view.tsx'
