@@ -8,19 +8,20 @@ import {EmployeeProfileCard} from '$features/employee/employee-profile-card'
 import {Footer} from "$features/layout/footer";
 import {Header} from '$features/layout/header';
 
-import {selectedDayAtom} from "./employee.model.ts";
-import {MOCK_DAYS} from "./mock-days.ts";
+import {paymentTypeAtom, selectedDayAtom} from "./employee.model.ts";
+import {MOCK_DAYS, MOCK_FIXED_DAYS} from "./mock-days.ts";
 import {Content, MainGrid, Page, RateType, RightColumn} from './styles.ts'
 
 
 export const EmployeePage = reatomComponent(({ctx}) => {
     const selectedDay = ctx.spy(selectedDayAtom)
+    const paymentType = ctx.spy(paymentTypeAtom)
 
     const selectedDayData = useMemo(() => {
-        return MOCK_DAYS.find(
+        return (paymentType === 'hourly' ? MOCK_DAYS : MOCK_FIXED_DAYS).find(
             (item) => item.day === selectedDay,
         );
-    }, [selectedDay]);
+    }, [paymentType, selectedDay]);
 
 
     return (

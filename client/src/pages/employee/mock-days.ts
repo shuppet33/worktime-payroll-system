@@ -30,3 +30,20 @@ export const MOCK_DAYS = [
         description: 'Созвон с командой',
     },
 ];
+
+export const MOCK_FIXED_DAYS = [
+    {
+        day: 1,
+        worked: true,
+    },
+    {
+        day: 2,
+        worked: false,
+        reason: 'Выходной',
+    },
+    {
+        day: 3,
+        worked: false,
+        reason: 'Больничный',
+    },
+];

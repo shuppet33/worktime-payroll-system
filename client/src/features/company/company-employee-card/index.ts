@@ -1,0 +1,1 @@
+export {CompanyEmployeeCard} from './company-employee-card.view.tsx'

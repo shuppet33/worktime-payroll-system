@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+import {FloatingCard} from "$entities/styles";
+
 export const DetailsCard = styled(FloatingCard)`
     padding: 24px;
 

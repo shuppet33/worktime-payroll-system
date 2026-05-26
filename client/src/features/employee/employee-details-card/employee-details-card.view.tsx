@@ -1,3 +1,9 @@
+import { Button } from 'antd';
+
+import { reatomComponent } from '@reatom/npm-react';
+
+import { paymentTypeAtom } from '$pages/employee/employee.model';
+
 import {
     CardHeader,
     DescriptionCard,
@@ -10,39 +16,83 @@ import {
 
 interface Props {
     selectedDay: number;
+
     dayData?: {
         day: number;
-        hours: string;
-        description: string;
+        worked?: boolean;
+        hours?: string;
+        reason?: string;
+        description?: string;
     };
 }
 
-export const EmployeeDetailsCard = ({
-                                        selectedDay,
-                                        dayData,
-                                    }: Props) => {
-    return (
-        <DetailsCard>
-            <CardHeader>
-                <DetailsDate>
-                    {selectedDay} мая 2026
-                </DetailsDate>
+export const EmployeeDetailsCard =
+    reatomComponent<Props>(
+        ({
+             ctx,
+             selectedDay,
+             dayData,
+         }) => {
+            const paymentType =
+                ctx.spy(
+                    paymentTypeAtom,
+                );
 
-                <HoursBadge>
-                    {dayData?.hours || '0ч'}
-                </HoursBadge>
-            </CardHeader>
+            const worked =
+                dayData?.worked ?? true;
 
-            <DescriptionCard>
-                <DescriptionTitle>
-                    Описание
-                </DescriptionTitle>
+            return (
+                <DetailsCard>
+                    <CardHeader>
+                        <DetailsDate>
+                            {selectedDay}{' '}
+                            мая 2026
+                        </DetailsDate>
 
-                <DescriptionText>
-                    {dayData?.description ||
-                        'Нет данных'}
-                </DescriptionText>
-            </DescriptionCard>
-        </DetailsCard>
+                        {paymentType ===
+                            'hourly' && (
+                                <HoursBadge>
+                                    {dayData?.hours ||
+                                        '0ч'}
+                                </HoursBadge>
+                            )}
+                    </CardHeader>
+
+                    <DescriptionCard>
+                        <DescriptionTitle>
+                            {paymentType ===
+                            'hourly'
+                                ? 'Описание'
+                                : 'Статус'}
+                        </DescriptionTitle>
+
+                        <DescriptionText>
+                            {paymentType ===
+                            'hourly'
+                                ? dayData?.description
+                                : worked
+                                    ? 'Рабочий день'
+                                    : dayData?.reason}
+                        </DescriptionText>
+                    </DescriptionCard>
+
+                    {paymentType ===
+                        'fixed' &&
+                        worked && (
+                            <Button
+                                type="primary"
+                                block
+                                style={{
+                                    marginTop:
+                                        16,
+                                }}
+                            >
+                                Не работал
+                                в этот
+                                день
+                            </Button>
+                        )}
+                </DetailsCard>
+            );
+        },
     );
-};

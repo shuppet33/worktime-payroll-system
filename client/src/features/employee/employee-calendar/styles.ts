@@ -48,6 +48,7 @@ export const DaysGrid = styled.div`
 
 export const DayCard = styled.div<{
     selected: boolean;
+    inactive?: boolean;
 }>`
     height: 72px;
 
@@ -57,15 +58,21 @@ export const DayCard = styled.div<{
 
     cursor: pointer;
 
-    background: ${({selected}) =>
-    selected
-        ? 'rgba(59,130,246,0.14)'
-        : 'rgba(15,23,42,0.5)'};
+    opacity:
+            ${({ inactive }) =>
+                    inactive ? 0.45 : 1};
 
-    border: 1px solid ${({selected}) =>
-    selected
-        ? 'rgba(59,130,246,0.5)'
-        : 'rgba(255,255,255,0.08)'};
+    background:
+            ${({ selected }) =>
+                    selected
+                            ? 'rgba(59,130,246,0.14)'
+                            : 'rgba(15,23,42,0.5)'};
+
+    border: 1px solid
+    ${({ selected }) =>
+            selected
+                    ? 'rgba(59,130,246,0.5)'
+                    : 'rgba(255,255,255,0.08)'};
 
     transition: 0.15s ease;
 
@@ -74,12 +81,13 @@ export const DayCard = styled.div<{
     justify-content: space-between;
 
     &:hover {
-        border-color: rgba(
-                59,
-                130,
-                246,
-                0.5
-        );
+        border-color:
+                rgba(
+                        59,
+                        130,
+                        246,
+                        0.5
+                );
     }
 `;
 

@@ -1,0 +1,1 @@
+export {CompanyEmployeeModal} from './company-employee-modal.view.tsx'
