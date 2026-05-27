@@ -1,0 +1,22 @@
+{
+  "name": "worktime-payroll-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "client": "cd client && pnpm run dev",
+    "server": "cd server && pnpm run dev",
+    "dev": "concurrently \"pnpm run server\" \"pnpm run client\"",
+
+    "install:client": "cd client && pnpm install",
+    "install:server": "cd server && pnpm install",
+    "install:all": "pnpm run install:server && pnpm run install:client"
+  },
+  "keywords": [],
+  "author": "Alena",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.2",
+  "dependencies": {
+    "concurrently": "9.2.1"
+  }
+}
