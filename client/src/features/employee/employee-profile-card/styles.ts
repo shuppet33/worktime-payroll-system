@@ -1,8 +1,8 @@
 import styled from "styled-components";
 
-import {FloatingCard} from "$entities/styles";
+import {SFloatingCard} from "$shared/styles";
 
-export const ProfileCard = styled(FloatingCard)`
+export const SProfileCard = styled(SFloatingCard)`
     padding: 24px;
 
     display: flex;
@@ -12,36 +12,36 @@ export const ProfileCard = styled(FloatingCard)`
     gap: 24px;
 `;
 
-export const ProfileLeft = styled.div`
+export const SProfileLeft = styled.div`
     flex: 1;
 `;
 
-export const SalaryTitle = styled.div`
+export const SSalaryTitle = styled.div`
     margin-bottom: 8px;
 
     color: #94a3b8;
 `;
 
-export const SalaryValue = styled.div`
+export const SSalaryValue = styled.div`
     font-size: 42px;
     font-weight: 700;
 
     margin-bottom: 6px;
 `;
 
-export const SalaryDescription = styled.div`
+export const SSalaryDescription = styled.div`
     margin-bottom: 24px;
 
     color: #64748b;
 `;
 
-export const ProfileInfo = styled.div`
+export const SProfileInfo = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
 `;
 
-export const InfoItem = styled.div`
+export const SInfoItem = styled.div`
     padding: 14px 16px;
 
     border-radius: 14px;
@@ -51,7 +51,7 @@ export const InfoItem = styled.div`
     border: 1px solid rgba(255, 255, 255, 0.06);
 `;
 
-export const ProfileRight = styled.div`
+export const SProfileRight = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -59,7 +59,7 @@ export const ProfileRight = styled.div`
     gap: 16px;
 `;
 
-export const AvatarCircle = styled.div`
+export const SAvatarCircle = styled.div`
     width: 120px;
     height: 120px;
 
@@ -74,7 +74,7 @@ export const AvatarCircle = styled.div`
     border: 1px solid rgba(255, 255, 255, 0.08);
 `;
 
-export const EmployeeName = styled.div`
+export const SEmployeeName = styled.div`
     font-size: 18px;
     font-weight: 600;
 `;

@@ -1,80 +1,67 @@
 import { Button } from 'antd';
 
-import { reatomComponent } from '@reatom/npm-react';
-
-import { paymentTypeAtom } from '$pages/employee/employee.model';
+import type { PaymentType, WorkDay } from '$entities/work-day';
 
 import {
-    CardHeader,
-    DescriptionCard,
-    DescriptionText,
-    DescriptionTitle,
-    DetailsCard,
-    DetailsDate,
-    HoursBadge,
+    SCardHeader,
+    SDescriptionCard,
+    SDescriptionText,
+    SDescriptionTitle,
+    SDetailsCard,
+    SDetailsDate,
+    SHoursBadge,
 } from './styles';
 
 interface Props {
     selectedDay: number;
+    paymentType: PaymentType;
 
-    dayData?: {
-        day: number;
-        worked?: boolean;
-        hours?: string;
-        reason?: string;
-        description?: string;
-    };
+    dayData?: WorkDay;
 }
 
 export const EmployeeDetailsCard =
-    reatomComponent<Props>(
-        ({
-             ctx,
-             selectedDay,
-             dayData,
-         }) => {
-            const paymentType =
-                ctx.spy(
-                    paymentTypeAtom,
-                );
+    ({
+        selectedDay,
+        paymentType,
+        dayData,
+    }: Props) => {
+        const worked =
+            dayData?.worked ?? true;
 
-            const worked =
-                dayData?.worked ?? true;
-
-            return (
-                <DetailsCard>
-                    <CardHeader>
-                        <DetailsDate>
+        return (
+            <SDetailsCard>
+                    <SCardHeader>
+                        <SDetailsDate>
                             {selectedDay}{' '}
                             мая 2026
-                        </DetailsDate>
+                        </SDetailsDate>
 
                         {paymentType ===
                             'hourly' && (
-                                <HoursBadge>
+                                <SHoursBadge>
                                     {dayData?.hours ||
                                         '0ч'}
-                                </HoursBadge>
+                                </SHoursBadge>
                             )}
-                    </CardHeader>
+                    </SCardHeader>
 
-                    <DescriptionCard>
-                        <DescriptionTitle>
+                    <SDescriptionCard>
+                        <SDescriptionTitle>
                             {paymentType ===
                             'hourly'
                                 ? 'Описание'
                                 : 'Статус'}
-                        </DescriptionTitle>
+                        </SDescriptionTitle>
 
-                        <DescriptionText>
+                        <SDescriptionText>
                             {paymentType ===
                             'hourly'
                                 ? dayData?.description
                                 : worked
                                     ? 'Рабочий день'
                                     : dayData?.reason}
-                        </DescriptionText>
-                    </DescriptionCard>
+                        </SDescriptionText>
+                    </SDescriptionCard>
 
                     {paymentType ===
                         'fixed' &&
@@ -92,7 +79,6 @@ export const EmployeeDetailsCard =
                                 день
                             </Button>
                         )}
-                </DetailsCard>
-            );
-        },
-    );
+            </SDetailsCard>
+        );
+    };

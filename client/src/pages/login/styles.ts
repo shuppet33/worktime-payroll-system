@@ -2,7 +2,7 @@ import {Button, Card} from 'antd';
 
 import styled from 'styled-components';
 
-export const Page = styled.div`
+export const SPage = styled.div`
     width: 100%;
     height: 100vh;
 
@@ -15,7 +15,7 @@ export const Page = styled.div`
     background: #f5f7fb;
 `;
 
-export const LoginCard = styled(Card)`
+export const SLoginCard = styled(Card)`
     width: 520px;
 
     border-radius: 24px !important;
@@ -27,7 +27,7 @@ export const LoginCard = styled(Card)`
     }
 `;
 
-export const Title = styled.h1`
+export const STitle = styled.h1`
     margin: 0;
 
     text-align: center;
@@ -35,7 +35,7 @@ export const Title = styled.h1`
     font-size: 32px;
 `;
 
-export const Subtitle = styled.p`
+export const SSubtitle = styled.p`
     margin-top: 8px;
 
     text-align: center;
@@ -43,13 +43,13 @@ export const Subtitle = styled.p`
     color: #6b7280;
 `;
 
-export const Roles = styled.div`
+export const SRoles = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
 `;
 
-export const RoleCard = styled.label<{ active: boolean }>`
+export const SRoleCard = styled.label<{ active: boolean }>`
     position: relative;
 
     padding: 20px;
@@ -90,12 +90,12 @@ export const RoleCard = styled.label<{ active: boolean }>`
     }
 `;
 
-export const RoleTitle = styled.div`
+export const SRoleTitle = styled.div`
     font-size: 18px;
     font-weight: 600;
 `;
 
-export const RoleDescription = styled.div`
+export const SRoleDescription = styled.div`
     margin-top: 4px;
 
     color: #6b7280;
@@ -103,13 +103,13 @@ export const RoleDescription = styled.div`
     font-size: 14px;
 `;
 
-export const Actions = styled.div`
+export const SActions = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
 `;
 
-export const BackButton = styled(Button)`
+export const SBackButton = styled(Button)`
     width: fit-content;
 
     padding: 0;

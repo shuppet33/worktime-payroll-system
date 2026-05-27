@@ -1,6 +1,6 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
-export const Footer = styled.footer`
+export const SFooter = styled.footer`
     height: 72px;
 
     display: flex;

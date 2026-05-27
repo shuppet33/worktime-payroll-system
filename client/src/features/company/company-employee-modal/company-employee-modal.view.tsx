@@ -1,63 +1,37 @@
 import { Modal } from 'antd';
 
-import { reatomComponent } from '@reatom/npm-react';
+import type { Employee } from '$entities/employee';
 
-import {
-    employeeModalOpenAtom,
-    selectedEmployeeAtom,
-} from '$pages/company/company.model.ts';
-import { MOCK_EMPLOYEES } from '$pages/company/mock-employees.ts';
+interface Props {
+    employee?: Employee;
+    open: boolean;
+    onClose: () => void;
+}
 
-export const CompanyEmployeeModal =
-    reatomComponent(({ ctx }) => {
-        const open = ctx.spy(
-            employeeModalOpenAtom,
-        );
+export const CompanyEmployeeModal = ({
+    employee,
+    open,
+    onClose,
+}: Props) => {
+    return (
+        <Modal
+            open={open}
+            onCancel={onClose}
+            footer={null}
+            title="Сотрудник"
+        >
+            <p>
+                {employee?.lastName}{' '}
+                {employee?.firstName}
+            </p>
 
-        const selectedEmployeeId =
-            ctx.spy(
-                selectedEmployeeAtom,
-            );
+            <p>
+                {employee?.position}
+            </p>
 
-        const employee =
-            MOCK_EMPLOYEES.find(
-                (item) =>
-                    item.id ===
-                    selectedEmployeeId,
-            );
-
-        return (
-            <Modal
-                open={open}
-                onCancel={() =>
-                    employeeModalOpenAtom(
-                        ctx,
-                        false,
-                    )
-                }
-                footer={null}
-                title="Сотрудник"
-            >
-                <p>
-                    {
-                        employee?.lastName
-                    }{' '}
-                    {
-                        employee?.firstName
-                    }
-                </p>
-
-                <p>
-                    {
-                        employee?.position
-                    }
-                </p>
-
-                <p>
-                    {
-                        employee?.paymentType
-                    }
-                </p>
-            </Modal>
-        );
-    });
+            <p>
+                {employee?.paymentType}
+            </p>
+        </Modal>
+    );
+};

@@ -1,65 +1,43 @@
-import { reatomComponent } from '@reatom/npm-react';
+import type { Employee } from '$entities/employee';
 
 import {
-    employeeModalOpenAtom,
-    selectedEmployeeAtom,
-} from '$pages/company/company.model.ts';
-
-import {
-    EmployeeCard,
-    EmployeeName,
-    EmployeePosition,
-    EmployeeType,
+    SEmployeeCard,
+    SEmployeeName,
+    SEmployeePosition,
+    SEmployeeType,
 } from './styles';
 
 interface Props {
-    employee: {
-        id: number;
-        firstName: string;
-        lastName: string;
-        position: string;
-        paymentType: string;
-    };
+    employee: Employee;
+    onSelect: (employeeId: number) => void;
 }
 
 export const CompanyEmployeeCard =
-    reatomComponent<Props>(
-        ({ ctx, employee }) => {
-            return (
-                <EmployeeCard
-                    onClick={() => {
-                        selectedEmployeeAtom(
-                            ctx,
-                            employee.id,
-                        );
+    ({ employee, onSelect }: Props) => {
+        return (
+            <SEmployeeCard
+                onClick={() => onSelect(employee.id)}
+            >
+                <SEmployeeName>
+                    {
+                        employee.lastName
+                    }{' '}
+                    {
+                        employee.firstName
+                    }
+                </SEmployeeName>
 
-                        employeeModalOpenAtom(
-                            ctx,
-                            true,
-                        );
-                    }}
-                >
-                    <EmployeeName>
-                        {
-                            employee.lastName
-                        }{' '}
-                        {
-                            employee.firstName
-                        }
-                    </EmployeeName>
+                <SEmployeePosition>
+                    {
+                        employee.position
+                    }
+                </SEmployeePosition>
 
-                    <EmployeePosition>
-                        {
-                            employee.position
-                        }
-                    </EmployeePosition>
-
-                    <EmployeeType>
-                        {
-                            employee.paymentType
-                        }
-                    </EmployeeType>
-                </EmployeeCard>
-            );
-        },
-    );
+                <SEmployeeType>
+                    {
+                        employee.paymentType
+                    }
+                </SEmployeeType>
+            </SEmployeeCard>
+        );
+    };

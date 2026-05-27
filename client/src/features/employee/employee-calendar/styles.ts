@@ -1,12 +1,12 @@
 import styled from "styled-components";
 
-import {FloatingCard} from "$entities/styles";
+import {SFloatingCard} from "$shared/styles";
 
-export const CalendarCard = styled(FloatingCard)`
+export const SCalendarCard = styled(SFloatingCard)`
     padding: 24px;
 `;
 
-export const CalendarTop = styled.div`
+export const SCalendarTop = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -14,14 +14,14 @@ export const CalendarTop = styled.div`
     margin-bottom: 24px;
 `;
 
-export const CardTitle = styled.h2`
+export const SCardTitle = styled.h2`
     margin: 0;
 
     font-size: 28px;
     font-weight: 700;
 `;
 
-export const WeekDays = styled.div`
+export const SWeekDays = styled.div`
     display: grid;
     grid-template-columns: repeat(7, 1fr);
 
@@ -30,7 +30,7 @@ export const WeekDays = styled.div`
     margin-bottom: 8px;
 `;
 
-export const WeekDay = styled.div`
+export const SWeekDay = styled.div`
     text-align: center;
 
     color: #64748b;
@@ -39,14 +39,14 @@ export const WeekDay = styled.div`
     font-weight: 600;
 `;
 
-export const DaysGrid = styled.div`
+export const SDaysGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(7, 1fr);
 
     gap: 8px;
 `;
 
-export const DayCard = styled.div<{
+export const SDayCard = styled.div<{
     selected: boolean;
     inactive?: boolean;
 }>`
@@ -91,18 +91,18 @@ export const DayCard = styled.div<{
     }
 `;
 
-export const DayNumber = styled.div`
+export const SDayNumber = styled.div`
     font-size: 22px;
     font-weight: 600;
 `;
 
-export const DayHours = styled.div`
+export const SDayHours = styled.div`
     font-size: 14px;
 
     color: #64748b;
 `;
 
-export const Hint = styled.div`
+export const SHint = styled.div`
     margin-top: 18px;
 
     color: #64748b;
@@ -110,7 +110,7 @@ export const Hint = styled.div`
     font-size: 14px;
 `;
 
-export const EmptyCell = styled.div`
+export const SEmptyCell = styled.div`
     height: 72px;
 `;
 

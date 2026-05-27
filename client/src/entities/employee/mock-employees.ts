@@ -1,4 +1,6 @@
-export const MOCK_EMPLOYEES = [
+import type { Employee } from './types';
+
+export const MOCK_EMPLOYEES: Employee[] = [
     {
         id: 1,
         firstName: 'Алена',

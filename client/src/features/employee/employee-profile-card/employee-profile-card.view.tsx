@@ -1,55 +1,55 @@
 import { Avatar } from 'antd';
 
 import {
-    AvatarCircle,
-    EmployeeName,
-    InfoItem,
-    ProfileCard,
-    ProfileInfo,
-    ProfileLeft,
-    ProfileRight,
-    SalaryDescription,
-    SalaryTitle,
-    SalaryValue,
+    SAvatarCircle,
+    SEmployeeName,
+    SInfoItem,
+    SProfileCard,
+    SProfileInfo,
+    SProfileLeft,
+    SProfileRight,
+    SSalaryDescription,
+    SSalaryTitle,
+    SSalaryValue,
 } from './styles';
 
 export const EmployeeProfileCard = () => {
     return (
-        <ProfileCard>
-            <ProfileLeft>
-                <SalaryTitle>
+        <SProfileCard>
+            <SProfileLeft>
+                <SSalaryTitle>
                     К выплате
-                </SalaryTitle>
+                </SSalaryTitle>
 
-                <SalaryValue>
+                <SSalaryValue>
                     72 500 ₽
-                </SalaryValue>
+                </SSalaryValue>
 
-                <SalaryDescription>
+                <SSalaryDescription>
                     Выплачено 0
                     из 72 500 ₽
-                </SalaryDescription>
+                </SSalaryDescription>
 
-                <ProfileInfo>
-                    <InfoItem>
+                <SProfileInfo>
+                    <SInfoItem>
                         Frontend Developer
-                    </InfoItem>
+                    </SInfoItem>
 
-                    <InfoItem>
+                    <SInfoItem>
                         Почасовая ставка
-                    </InfoItem>
-                </ProfileInfo>
-            </ProfileLeft>
+                    </SInfoItem>
+                </SProfileInfo>
+            </SProfileLeft>
 
-            <ProfileRight>
-                <AvatarCircle>
+            <SProfileRight>
+                <SAvatarCircle>
                     <Avatar size={90} />
-                </AvatarCircle>
+                </SAvatarCircle>
 
-                <EmployeeName>
+                <SEmployeeName>
                     Иванов Иван
-                </EmployeeName>
-            </ProfileRight>
-        </ProfileCard>
+                </SEmployeeName>
+            </SProfileRight>
+        </SProfileCard>
     );
 };

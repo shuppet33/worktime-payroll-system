@@ -11,6 +11,7 @@
     "paths": {
       "$features/*": ["src/features/*"],
       "$pages/*": ["src/pages/*"],
+      "$widgets/*": ["src/widgets/*"],
       "$entities/*": ["src/entities/*"],
       "$shared/*": ["src/shared/*"]
     },

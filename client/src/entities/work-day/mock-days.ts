@@ -1,4 +1,6 @@
-export const MOCK_DAYS = [
+import type { FixedWorkDay, HourlyWorkDay } from './types';
+
+export const MOCK_DAYS: HourlyWorkDay[] = [
     {
         day: 1,
         hours: '4ч',
@@ -31,7 +33,7 @@ export const MOCK_DAYS = [
     },
 ];
 
-export const MOCK_FIXED_DAYS = [
+export const MOCK_FIXED_DAYS: FixedWorkDay[] = [
     {
         day: 1,
         worked: true,

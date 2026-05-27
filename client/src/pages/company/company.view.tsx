@@ -1,44 +1,54 @@
 import {Button, Input, Select} from 'antd';
 
+import {reatomComponent} from '@reatom/npm-react';
+
+import {Footer} from '$widgets/layout/footer'
+import {Header} from '$widgets/layout/header';
+
 import {CompanyEmployeeCard} from '$features/company/company-employee-card';
 import {CompanyEmployeeModal} from '$features/company/company-employee-modal';
-import {Footer} from '$features/layout/footer'
-import {Header} from '$features/layout/header';
 
-import {MOCK_EMPLOYEES} from './mock-employees.ts';
-import {CompanyContent, CompanyGrid, CompanyPageWrapper, Filters, PageTitle, SearchWrapper} from './styles';
+import {MOCK_EMPLOYEES} from '$entities/employee';
 
-const HEADER_PAGES = [
-    {
-        key: 'employees',
-        title: 'Сотрудники',
-    },
-    {
-        key: 'payments',
-        title: 'Выплаты',
-    },
-];
+import {employeeModalOpenAtom, selectedEmployeeAtom} from './company.model.ts';
+import {SCompanyContent, SCompanyGrid, SCompanyPageWrapper, SFilters, SPageTitle, SSearchWrapper} from './styles';
 
-export const CompanyPage = () => {
+export const CompanyPage = reatomComponent(({ctx}) => {
+    const employeeModalOpen = ctx.spy(employeeModalOpenAtom);
+    const selectedEmployeeId = ctx.spy(selectedEmployeeAtom);
+
+    const selectedEmployee = MOCK_EMPLOYEES.find(
+        (employee) => employee.id === selectedEmployeeId,
+    );
+
+    const handleSelectEmployee = (employeeId: number) => {
+        selectedEmployeeAtom(ctx, employeeId);
+        employeeModalOpenAtom(ctx, true);
+    };
+
+    const handleCloseEmployeeModal = () => {
+        employeeModalOpenAtom(ctx, false);
+    };
+
     return (
-        <CompanyPageWrapper>
+        <SCompanyPageWrapper>
             <Header />
 
-            <CompanyContent>
-                <PageTitle>
+            <SCompanyContent>
+                <SPageTitle>
                     Сотрудники
-                </PageTitle>
+                </SPageTitle>
 
-                <Filters>
+                <SFilters>
                     <Button type="primary">
                         Добавить сотрудника
                     </Button>
 
-                    <SearchWrapper>
+                    <SSearchWrapper>
                         <Input
                             placeholder="Поиск по имени"
                         />
-                    </SearchWrapper>
+                    </SSearchWrapper>
 
                     <Select
                         allowClear
@@ -79,9 +89,9 @@ export const CompanyPage = () => {
                             },
                         ]}
                     />
-                </Filters>
+                </SFilters>
 
-                <CompanyGrid>
+                <SCompanyGrid>
                     {MOCK_EMPLOYEES.map(
                         (employee) => (
                             <CompanyEmployeeCard
@@ -91,15 +101,22 @@ export const CompanyPage = () => {
                                 employee={
                                     employee
                                 }
+                                onSelect={
+                                    handleSelectEmployee
+                                }
                             />
                         ),
                     )}
-                </CompanyGrid>
-            </CompanyContent>
+                </SCompanyGrid>
+            </SCompanyContent>
             
             <Footer />
 
-            <CompanyEmployeeModal/>
-        </CompanyPageWrapper>
+            <CompanyEmployeeModal
+                employee={selectedEmployee}
+                open={employeeModalOpen}
+                onClose={handleCloseEmployeeModal}
+            />
+        </SCompanyPageWrapper>
     );
-};
+});

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const CompanyPageWrapper =
+export const SCompanyPageWrapper =
     styled.div`
         min-height: 100vh;
 
@@ -13,18 +13,18 @@ export const CompanyPageWrapper =
     `;
 
 
-export const CompanyContent =
+export const SCompanyContent =
     styled.main`
         flex: 1;
 
         padding: 28px 32px;
     `;
 
-export const PageTitle = styled.h1`
+export const SPageTitle = styled.h1`
     margin-bottom: 24px;
 `;
 
-export const Filters = styled.div`
+export const SFilters = styled.div`
     display: flex;
     align-items: center;
     gap: 16px;
@@ -34,7 +34,7 @@ export const Filters = styled.div`
     flex-wrap: wrap;
 `;
 
-export const CompanyGrid = styled.div`
+export const SCompanyGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(
         auto-fill,
@@ -44,6 +44,6 @@ export const CompanyGrid = styled.div`
     gap: 20px;
 `;
 
-export const SearchWrapper = styled.div`
+export const SSearchWrapper = styled.div`
     width: 240px;
 `;

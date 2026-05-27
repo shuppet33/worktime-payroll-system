@@ -7,16 +7,16 @@ import {useNavigate} from 'react-router'
 
 import {loginAtom, passwordAtom, roleAtom, stepAtom,} from './login.model';
 import {
-    Actions,
-    BackButton,
-    LoginCard,
-    Page,
-    RoleCard,
-    RoleDescription,
-    Roles,
-    RoleTitle,
-    Subtitle,
-    Title,
+    SActions,
+    SBackButton,
+    SLoginCard,
+    SPage,
+    SRoleCard,
+    SRoleDescription,
+    SRoles,
+    SRoleTitle,
+    SSubtitle,
+    STitle,
 } from './styles';
 
 export const LoginPage = reatomComponent(({ctx}) => {
@@ -65,22 +65,22 @@ export const LoginPage = reatomComponent(({ctx}) => {
     };
 
     return (
-        <Page>
-            <LoginCard>
+        <SPage>
+            <SLoginCard>
                 {step === 'select-role' && (
                     <>
                         <div>
-                            <Title>
+                            <STitle>
                                 Payroll System
-                            </Title>
+                            </STitle>
 
-                            <Subtitle>
+                            <SSubtitle>
                                 Система расчета заработной платы
-                            </Subtitle>
+                            </SSubtitle>
                         </div>
 
-                        <Roles>
-                            <RoleCard
+                        <SRoles>
+                            <SRoleCard
                                 active={role === 'employee'}
                                 onClick={() =>
                                     roleAtom(ctx, 'employee')
@@ -89,17 +89,17 @@ export const LoginPage = reatomComponent(({ctx}) => {
                                 <UserOutlined/>
 
                                 <div>
-                                    <RoleTitle>
+                                    <SRoleTitle>
                                         Сотрудник
-                                    </RoleTitle>
+                                    </SRoleTitle>
 
-                                    <RoleDescription>
+                                    <SRoleDescription>
                                         Просмотр зарплаты
-                                    </RoleDescription>
+                                    </SRoleDescription>
                                 </div>
-                            </RoleCard>
+                            </SRoleCard>
 
-                            <RoleCard
+                            <SRoleCard
                                 active={role === 'company'}
                                 onClick={() =>
                                     roleAtom(ctx, 'company')
@@ -108,18 +108,18 @@ export const LoginPage = reatomComponent(({ctx}) => {
                                 <TeamOutlined/>
 
                                 <div>
-                                    <RoleTitle>
+                                    <SRoleTitle>
                                         Работодатель
-                                    </RoleTitle>
+                                    </SRoleTitle>
 
-                                    <RoleDescription>
+                                    <SRoleDescription>
                                         Управление компанией
-                                    </RoleDescription>
+                                    </SRoleDescription>
                                 </div>
-                            </RoleCard>
-                        </Roles>
+                            </SRoleCard>
+                        </SRoles>
 
-                        <Actions>
+                        <SActions>
                             <Button
                                 type="primary"
                                 size="large"
@@ -136,26 +136,26 @@ export const LoginPage = reatomComponent(({ctx}) => {
                             >
                                 Зарегистрироваться
                             </Button>
-                        </Actions>
+                        </SActions>
                     </>
                 )}
 
                 {step === 'login' && (
                     <>
-                        <BackButton
+                        <SBackButton
                             type="text"
                             icon={<ArrowLeftOutlined/>}
                             onClick={handleBack}
                         />
 
                         <div>
-                            <Title>
+                            <STitle>
                                 Вход
-                            </Title>
+                            </STitle>
 
-                            <Subtitle>
+                            <SSubtitle>
                                 {selectedRoleTitle}
-                            </Subtitle>
+                            </SSubtitle>
                         </div>
 
                         <Input
@@ -194,7 +194,7 @@ export const LoginPage = reatomComponent(({ctx}) => {
                         </Button>
                     </>
                 )}
-            </LoginCard>
-        </Page>
+            </SLoginCard>
+        </SPage>
     );
 });

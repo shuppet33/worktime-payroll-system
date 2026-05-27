@@ -1,6 +1,6 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
-export const Header = styled.header`
+export const SHeader = styled.header`
     height: 80px;
 
     padding: 0 32px;
@@ -16,7 +16,7 @@ export const Header = styled.header`
     backdrop-filter: blur(12px);
 `;
 
-export const Logo = styled.div`
+export const SLogo = styled.div`
     font-size: 22px;
     font-weight: 700;
 `;

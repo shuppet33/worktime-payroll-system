@@ -2,53 +2,71 @@ import {useMemo} from 'react';
 
 import {reatomComponent} from "@reatom/npm-react";
 
+import {Footer} from "$widgets/layout/footer";
+import {Header} from '$widgets/layout/header';
+
 import {EmployeeCalendar} from "$features/employee/employee-calendar";
 import {EmployeeDetailsCard} from '$features/employee/employee-details-card'
 import {EmployeeProfileCard} from '$features/employee/employee-profile-card'
-import {Footer} from "$features/layout/footer";
-import {Header} from '$features/layout/header';
 
-import {paymentTypeAtom, selectedDayAtom} from "./employee.model.ts";
-import {MOCK_DAYS, MOCK_FIXED_DAYS} from "./mock-days.ts";
-import {Content, MainGrid, Page, RateType, RightColumn} from './styles.ts'
+import {MOCK_DAYS, MOCK_FIXED_DAYS} from "$entities/work-day";
+
+import {calendarMonthAtom, calendarYearAtom, paymentTypeAtom, selectedDayAtom} from "./employee.model.ts";
+import {SContent, SMainGrid, SPage, SRateType, SRightColumn} from './styles.ts'
 
 
 export const EmployeePage = reatomComponent(({ctx}) => {
     const selectedDay = ctx.spy(selectedDayAtom)
     const paymentType = ctx.spy(paymentTypeAtom)
+    const calendarMonth = ctx.spy(calendarMonthAtom)
+    const calendarYear = ctx.spy(calendarYearAtom)
+    const workDays = paymentType === 'hourly' ? MOCK_DAYS : MOCK_FIXED_DAYS;
 
     const selectedDayData = useMemo(() => {
-        return (paymentType === 'hourly' ? MOCK_DAYS : MOCK_FIXED_DAYS).find(
+        return workDays.find(
             (item) => item.day === selectedDay,
         );
-    }, [paymentType, selectedDay]);
+    }, [selectedDay, workDays]);
 
 
     return (
-        <Page>
+        <SPage>
             <Header/>
 
-            <Content>
-                <RateType>
+            <SContent>
+                <SRateType>
                     Вид ставки:
                     <strong>
                         {' '}
                         почасовая
                     </strong>
-                </RateType>
+                </SRateType>
 
-                <MainGrid>
-                    <EmployeeCalendar/>
+                <SMainGrid>
+                    <EmployeeCalendar
+                        month={calendarMonth}
+                        onSelectDay={(day) =>
+                            selectedDayAtom(ctx, day)
+                        }
+                        paymentType={paymentType}
+                        selectedDay={selectedDay}
+                        workDays={workDays}
+                        year={calendarYear}
+                    />
 
-                    <RightColumn>
-                        <EmployeeDetailsCard selectedDay={selectedDay} dayData={selectedDayData}/>
+                    <SRightColumn>
+                        <EmployeeDetailsCard
+                            selectedDay={selectedDay}
+                            paymentType={paymentType}
+                            dayData={selectedDayData}
+                        />
 
                         <EmployeeProfileCard/>
-                    </RightColumn>
-                </MainGrid>
-            </Content>
+                    </SRightColumn>
+                </SMainGrid>
+            </SContent>
 
             <Footer/>
-        </Page>
+        </SPage>
     );
 });

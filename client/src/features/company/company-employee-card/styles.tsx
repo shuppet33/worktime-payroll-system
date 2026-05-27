@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 
-import { FloatingCard } from '$entities/styles';
+import { SFloatingCard } from '$shared/styles';
 
-export const EmployeeCard =
-    styled(FloatingCard)`
+export const SEmployeeCard =
+    styled(SFloatingCard)`
         padding: 20px;
 
         cursor: pointer;
@@ -15,7 +15,7 @@ export const EmployeeCard =
         }
     `;
 
-export const EmployeeName =
+export const SEmployeeName =
     styled.div`
         font-size: 20px;
         font-weight: 600;
@@ -23,14 +23,14 @@ export const EmployeeName =
         margin-bottom: 12px;
     `;
 
-export const EmployeePosition =
+export const SEmployeePosition =
     styled.div`
         color: #94a3b8;
 
         margin-bottom: 8px;
     `;
 
-export const EmployeeType =
+export const SEmployeeType =
     styled.div`
         color: #60a5fa;
     `;

@@ -1,15 +1,15 @@
 import styled from "styled-components";
 
-import {FloatingCard} from "$entities/styles";
+import {SFloatingCard} from "$shared/styles";
 
-export const DetailsCard = styled(FloatingCard)`
+export const SDetailsCard = styled(SFloatingCard)`
     padding: 24px;
 
     min-height: 220px;
 `;
 
 
-export const CardHeader = styled.div`
+export const SCardHeader = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -17,12 +17,12 @@ export const CardHeader = styled.div`
     margin-bottom: 24px;
 `;
 
-export const DetailsDate = styled.div`
+export const SDetailsDate = styled.div`
     font-size: 22px;
     font-weight: 600;
 `;
 
-export const HoursBadge = styled.div`
+export const SHoursBadge = styled.div`
     padding: 8px 14px;
 
     border-radius: 14px;
@@ -36,7 +36,7 @@ export const HoursBadge = styled.div`
     font-weight: 600;
 `;
 
-export const DescriptionCard = styled.div`
+export const SDescriptionCard = styled.div`
     padding: 18px;
 
     border-radius: 18px;
@@ -46,7 +46,7 @@ export const DescriptionCard = styled.div`
     border: 1px solid rgba(255, 255, 255, 0.05);
 `;
 
-export const DescriptionTitle = styled.div`
+export const SDescriptionTitle = styled.div`
     margin-bottom: 10px;
 
     color: #64748b;
@@ -54,6 +54,6 @@ export const DescriptionTitle = styled.div`
     font-size: 14px;
 `;
 
-export const DescriptionText = styled.div`
+export const SDescriptionText = styled.div`
     font-size: 16px;
 `;

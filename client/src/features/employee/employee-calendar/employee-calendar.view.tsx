@@ -1,95 +1,99 @@
 import { Select } from 'antd';
 
-import { reatomComponent } from '@reatom/npm-react';
-
-import {
-    paymentTypeAtom,
-    selectedDayAtom,
-} from '$pages/employee/employee.model';
-import {MOCK_DAYS, MOCK_FIXED_DAYS} from '$pages/employee/mock-days';
+import type { PaymentType, WorkDay } from '$entities/work-day';
 
 import { generateCalendarDays } from './generate-calendar-days.utils';
 import {
-    CalendarCard,
-    CalendarTop,
-    CardTitle,
-    DayCard,
-    DayHours,
-    DayNumber,
-    DaysGrid,
-    EmptyCell,
-    Hint,
-    WeekDay,
-    WeekDays,
+    SCalendarCard,
+    SCalendarTop,
+    SCardTitle,
+    SDayCard,
+    SDayHours,
+    SDayNumber,
+    SDaysGrid,
+    SEmptyCell,
+    SHint,
+    SWeekDay,
+    SWeekDays,
 } from './styles';
 
+interface Props {
+    month: number;
+    onSelectDay: (day: number) => void;
+    paymentType: PaymentType;
+    selectedDay: number;
+    workDays: WorkDay[];
+    year: number;
+}
+
+const MONTH_OPTIONS = [
+    {
+        value: 5,
+        label: 'Май',
+    },
+];
+
 export const EmployeeCalendar =
-    reatomComponent(({ ctx }) => {
-        const selectedDay = ctx.spy(
-            selectedDayAtom,
-        );
-
-        const paymentType = ctx.spy(
-            paymentTypeAtom,
-        );
-
+    ({
+        month,
+        onSelectDay,
+        paymentType,
+        selectedDay,
+        workDays,
+        year,
+    }: Props) => {
         const days =
             generateCalendarDays(
-                7,
-                2026,
+                month,
+                year,
             );
 
         return (
-            <CalendarCard>
-                <CalendarTop>
-                    <CardTitle>
+            <SCalendarCard>
+                <SCalendarTop>
+                    <SCardTitle>
                         Календарь
-                    </CardTitle>
+                    </SCardTitle>
 
                     <Select
-                        defaultValue="Май"
+                        value={month}
                         style={{
                             width: 100,
                         }}
-                        options={[
-                            {
-                                value: 'Май',
-                                label: 'Май',
-                            },
-                        ]}
+                        options={MONTH_OPTIONS}
                     />
-                </CalendarTop>
+                </SCalendarTop>
 
-                <WeekDays>
-                    <WeekDay>
+                <SWeekDays>
+                    <SWeekDay>
                         Пн
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Вт
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Ср
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Чт
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Пт
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Сб
-                    </WeekDay>
-                    <WeekDay>
+                    </SWeekDay>
+                    <SWeekDay>
                         Вс
-                    </WeekDay>
-                </WeekDays>
+                    </SWeekDay>
+                </SWeekDays>
 
-                <DaysGrid>
+                <SDaysGrid>
                     {days.map(
                         (day, index) => {
                             if (!day) {
                                 return (
-                                    <EmptyCell
+                                    <SEmptyCell
                                         key={
                                             index
                                         }
@@ -98,12 +102,9 @@ export const EmployeeCalendar =
                             }
 
                             const dayData =
-                                (paymentType === 'hourly' ? MOCK_DAYS : MOCK_FIXED_DAYS).find(
-                                    (
-                                        item,
-                                    ) =>
-                                        item.day ===
-                                        day,
+                                workDays.find(
+                                    (item) =>
+                                        item.day === day,
                                 );
 
                             const worked =
@@ -111,7 +112,7 @@ export const EmployeeCalendar =
                                 true;
 
                             return (
-                                <DayCard
+                                <SDayCard
                                     key={day}
                                     selected={
                                         selectedDay ===
@@ -123,17 +124,14 @@ export const EmployeeCalendar =
                                         !worked
                                     }
                                     onClick={() =>
-                                        selectedDayAtom(
-                                            ctx,
-                                            day,
-                                        )
+                                        onSelectDay(day)
                                     }
                                 >
-                                    <DayNumber>
+                                    <SDayNumber>
                                         {day}
-                                    </DayNumber>
+                                    </SDayNumber>
 
-                                    <DayHours>
+                                    <SDayHours>
                                         {paymentType ===
                                         'hourly'
                                             ? dayData?.hours ||
@@ -141,19 +139,19 @@ export const EmployeeCalendar =
                                             : worked
                                                 ? 'Рабочий'
                                                 : 'Выходной'}
-                                    </DayHours>
-                                </DayCard>
+                                    </SDayHours>
+                                </SDayCard>
                             );
                         },
                     )}
-                </DaysGrid>
+                </SDaysGrid>
 
-                <Hint>
+                <SHint>
                     Нажмите на
                     день, чтобы
                     посмотреть
                     детали
-                </Hint>
-            </CalendarCard>
+                </SHint>
+            </SCalendarCard>
         );
-    });
+    };
