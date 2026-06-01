@@ -7,7 +7,7 @@ import {
     SEmployeeType,
 } from './styles';
 
-interface Props {
+type Props = {
     employee: Employee;
     onSelect: (employeeId: number) => void;
 }

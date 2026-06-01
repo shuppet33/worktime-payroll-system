@@ -2,7 +2,7 @@ export type PaymentType =
     | 'hourly'
     | 'fixed';
 
-export interface WorkDay {
+export type WorkDay = {
     day: number;
     worked?: boolean;
     hours?: string;

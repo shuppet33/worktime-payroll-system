@@ -17,7 +17,7 @@ import {
     SWeekDays,
 } from './styles';
 
-interface Props {
+type Props = {
     month: number;
     onSelectDay: (day: number) => void;
     paymentType: PaymentType;

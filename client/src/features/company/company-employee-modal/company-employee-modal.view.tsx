@@ -2,7 +2,7 @@ import { Modal } from 'antd';
 
 import type { Employee } from '$entities/employee';
 
-interface Props {
+type Props = {
     employee?: Employee;
     open: boolean;
     onClose: () => void;

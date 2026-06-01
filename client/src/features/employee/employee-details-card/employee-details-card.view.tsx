@@ -12,7 +12,7 @@ import {
     SHoursBadge,
 } from './styles';
 
-interface Props {
+type Props = {
     selectedDay: number;
     paymentType: PaymentType;
 
