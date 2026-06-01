@@ -1,9 +1,19 @@
-import { Button, Input, Modal } from 'antd'
+import { Alert, Button, Input, Modal } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
-import { loginModalOpenAtom, registerModalOpenAtom } from './main.model'
+import {
+    loginAtom,
+    loginModalOpenAtom,
+    loginUser,
+    passwordAtom,
+    registerConfirmPasswordAtom,
+    registerLoginAtom,
+    registerModalOpenAtom,
+    registerPasswordAtom,
+    registerUser,
+} from './main.model'
 import {
     SContent,
     SDescription,
@@ -16,9 +26,23 @@ import {
 } from './styles'
 
 export const MainPage = reatomComponent(({ ctx }) => {
-    const loginOpen = ctx.spy(loginModalOpenAtom)
+    const loginModalOpen = ctx.spy(loginModalOpenAtom)
+    const registerModalOpen = ctx.spy(registerModalOpenAtom)
 
-    const registerOpen = ctx.spy(registerModalOpenAtom)
+    const { isPending: registerLoading, isRejected: registerRejected } = ctx.spy(
+        registerUser.statusesAtom,
+    )
+    const registerError = ctx.spy(registerUser.errorAtom)
+
+    const registerLogin = ctx.spy(registerLoginAtom)
+    const registerPassword = ctx.spy(registerPasswordAtom)
+    const registerConfirmPassword = ctx.spy(registerConfirmPasswordAtom)
+    
+    const login = ctx.spy(loginAtom)
+    const password = ctx.spy(passwordAtom)
+
+    const { isPending: loginLoading, isRejected: loginRejected } = ctx.spy(loginUser.statusesAtom)
+    const loginError = ctx.spy(loginUser.errorAtom)
 
     return (
         <SPage>
@@ -52,14 +76,23 @@ export const MainPage = reatomComponent(({ ctx }) => {
 
             <Modal
                 title="Вход"
-                open={loginOpen}
+                open={loginModalOpen}
                 footer={null}
-                onCancel={() => loginModalOpenAtom(ctx, false)}
+                onCancel={() => {
+                    loginUser.errorAtom.reset(ctx)
+                    loginModalOpenAtom(ctx, false)
+                }}
             >
+                {loginRejected && loginError && (
+                    <Alert type="error" title={loginError.message} />
+                )}
+
                 <Input
                     size="large"
                     placeholder="Логин"
                     prefix={<UserOutlined />}
+                    value={login}
+                    onChange={(event) => loginAtom(ctx, event.target.value)}
                 />
 
                 <Input.Password
@@ -69,6 +102,8 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     size="large"
                     placeholder="Пароль"
                     prefix={<LockOutlined />}
+                    value={password}
+                    onChange={(event) => passwordAtom(ctx, event.target.value)}
                 />
 
                 <Button
@@ -78,6 +113,15 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     style={{
                         marginTop: 20,
                     }}
+                    loading={loginLoading}
+                    onChange={() => {
+                        loginUser.errorAtom.reset(ctx)
+
+                        loginAtom(ctx, '')
+                        passwordAtom(ctx, '')
+
+                        loginUser(ctx)
+                    }}
                 >
                     Войти
                 </Button>
@@ -85,14 +129,23 @@ export const MainPage = reatomComponent(({ ctx }) => {
 
             <Modal
                 title="Регистрация"
-                open={registerOpen}
+                open={registerModalOpen}
                 footer={null}
-                onCancel={() => registerModalOpenAtom(ctx, false)}
+                onCancel={() => {
+                    registerUser.errorAtom.reset(ctx)
+                    registerModalOpenAtom(ctx, false)
+                }}
             >
+                {registerRejected && registerError && (
+                    <Alert type="error" title={registerError.message} />
+                )}
+
                 <Input
                     size="large"
                     placeholder="Логин"
+                    value={registerLogin}
                     prefix={<UserOutlined />}
+                    onChange={(e) => registerLoginAtom(ctx, e.target.value)}
                 />
 
                 <Input.Password
@@ -102,6 +155,10 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     size="large"
                     placeholder="Пароль"
                     prefix={<LockOutlined />}
+                    value={registerPassword}
+                    onChange={(event) =>
+                        registerPasswordAtom(ctx, event.target.value)
+                    }
                 />
 
                 <Input.Password
@@ -111,14 +168,24 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     size="large"
                     placeholder="Повторите пароль"
                     prefix={<LockOutlined />}
+                    value={registerConfirmPassword}
+                    onChange={(event) =>
+                        registerConfirmPasswordAtom(ctx, event.target.value)
+                    }
                 />
 
                 <Button
+                    loading={registerLoading}
                     type="primary"
+                    htmlType="submit"
                     block
                     size="large"
                     style={{
                         marginTop: 20,
+                    }}
+                    onClick={() => {
+                        registerUser.errorAtom.reset(ctx)
+                        registerUser(ctx)
                     }}
                 >
                     Зарегистрироваться

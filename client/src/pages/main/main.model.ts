@@ -1,4 +1,64 @@
-import { atom } from '@reatom/framework'
+import {
+    atom,
+    reatomAsync,
+    withErrorAtom,
+    withStatusesAtom,
+} from '@reatom/framework'
+
+import { loginRequest, registerRequest } from '$shared/auth/auth.ts'
 
 export const loginModalOpenAtom = atom(false)
 export const registerModalOpenAtom = atom(false)
+
+export const loginAtom = atom('')
+export const passwordAtom = atom('')
+
+export const registerLoginAtom = atom('')
+export const registerPasswordAtom = atom('')
+export const registerConfirmPasswordAtom = atom('')
+
+export const loginUser = reatomAsync((ctx) => {
+    return ctx.schedule(async () => {
+        const login = ctx.get(loginAtom)
+
+        const password = ctx.get(passwordAtom)
+
+        if (!login.trim()) {
+            throw new Error('Введите логин')
+        }
+
+        if (!password.trim()) {
+            throw new Error('Введите пароль')
+        }
+
+        return loginRequest({
+            login,
+            password,
+        })
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
+
+export const registerUser = reatomAsync((ctx) => {
+    return ctx.schedule(async () => {
+        const login = ctx.get(registerLoginAtom)
+        const password = ctx.get(registerPasswordAtom)
+        const confirmPassword = ctx.get(registerConfirmPasswordAtom)
+
+        if (!login.trim()) {
+            throw new Error('Введите логин')
+        }
+
+        if (password.length < 6) {
+            throw new Error('Минимум 6 символов')
+        }
+
+        if (password !== confirmPassword) {
+            throw new Error('Пароли не совпадают')
+        }
+
+        return registerRequest({
+            login,
+            password,
+        })
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
