@@ -81,7 +81,6 @@ export const authController = {
 
             const token = generateToken({
                 id: user.id,
-                role: user.role,
             })
 
             return res.status(200).json({
