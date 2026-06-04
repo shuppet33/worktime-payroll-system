@@ -1,6 +1,7 @@
 import { userModel } from './users.model.js'
 import { comparePassword, hashPassword } from '../../shared/utils/password.js'
 import { generateToken } from '../../shared/utils/jwt.js'
+import { nanoid } from 'nanoid'
 
 export const authController = {
     async register(req, res) {
@@ -23,7 +24,10 @@ export const authController = {
 
             const passwordHash = await hashPassword(password)
 
+            const userId = nanoid(8)
+
             const user = await userModel.create({
+                id: userId,
                 login,
                 passwordHash,
             })
