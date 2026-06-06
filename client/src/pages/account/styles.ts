@@ -1,56 +1,14 @@
-import { Layout } from 'antd'
-
 import styled from 'styled-components'
 
-export const SPage = styled(Layout)`
+export const SPage = styled.div`
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: #ffffff;
 `
 
-export const SSidebar = styled(Layout.Sider)`
-    background: #d9d9d9 !important;
-    border-right: 1px solid #cfcfcf;
-`
-
-export const SSidebarInner = styled.div`
-    height: 100%;
-    padding: 16px 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`
-
-export const SSidebarToggle = styled.div`
-    display: flex;
-    justify-content: flex-end;
-`
-
-export const SProfileItem = styled.button<{ $collapsed: boolean }>`
-    width: 100%;
-    min-height: 40px;
-    border: 0;
-    padding: ${({ $collapsed }) => ($collapsed ? '0' : '0 12px')};
-    display: flex;
-    align-items: center;
-    justify-content: ${({ $collapsed }) =>
-        $collapsed ? 'center' : 'flex-start'};
-    gap: 10px;
-    background: transparent;
-    color: #111827;
-    font: inherit;
-    cursor: pointer;
-`
-
-export const SProfileIcon = styled.span`
-    width: 24px;
-    height: 24px;
-    flex: 0 0 24px;
-    border-radius: 50%;
-    background: #5bb7c8;
-`
-
-export const SContent = styled(Layout.Content)`
-    min-height: 100vh;
+export const SContent = styled.main`
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;

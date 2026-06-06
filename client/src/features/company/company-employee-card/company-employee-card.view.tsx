@@ -1,4 +1,8 @@
+import { reatomComponent } from '@reatom/npm-react'
+
 import type { Employee } from '$entities/employee';
+
+import { appThemeAtom } from '$shared/theme.ts'
 
 import {
     SEmployeeCard,
@@ -13,9 +17,12 @@ type Props = {
 }
 
 export const CompanyEmployeeCard =
-    ({ employee, onSelect }: Props) => {
+    reatomComponent<Props>(({ ctx, employee, onSelect }) => {
+        const appTheme = ctx.spy(appThemeAtom)
+
         return (
             <SEmployeeCard
+                $theme={appTheme}
                 onClick={() => onSelect(employee.id)}
             >
                 <SEmployeeName>
@@ -27,7 +34,7 @@ export const CompanyEmployeeCard =
                     }
                 </SEmployeeName>
 
-                <SEmployeePosition>
+                <SEmployeePosition $theme={appTheme}>
                     {
                         employee.position
                     }
@@ -40,4 +47,4 @@ export const CompanyEmployeeCard =
                 </SEmployeeType>
             </SEmployeeCard>
         );
-    };
+    });

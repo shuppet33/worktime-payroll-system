@@ -1,12 +1,12 @@
-import { Alert, Button, Input, Layout, Menu, Modal } from 'antd'
-import Sider from 'antd/es/layout/Sider'
-import {
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-    UserOutlined,
-} from '@ant-design/icons'
+import { Alert, Button, Input, Modal } from 'antd'
 
 import { reatomComponent } from '@reatom/npm-react'
+
+import { Navigate } from 'react-router'
+
+import { Header } from '$widgets/layout/header'
+
+import { userAtom } from '$entities/auth.ts'
 
 import {
     companyNameAtom,
@@ -15,7 +15,6 @@ import {
     inviteLinkAtom,
     joinCompany,
     joinCompanyModalOpenAtom,
-    sidebarCollapsedAtom,
 } from './account.reatom.ts'
 import {
     SActions,
@@ -23,11 +22,11 @@ import {
     SEmptyState,
     SEmptyText,
     SModalContent,
-    SSidebarToggle,
+    SPage,
 } from './styles'
 
 export const AccountPage = reatomComponent(({ ctx }) => {
-    const sidebarCollapsed = ctx.spy(sidebarCollapsedAtom)
+    const user = ctx.spy(userAtom)
     const createCompanyModalOpen = ctx.spy(createCompanyModalOpenAtom)
     const joinCompanyModalOpen = ctx.spy(joinCompanyModalOpenAtom)
     const companyName = ctx.spy(companyNameAtom)
@@ -42,45 +41,29 @@ export const AccountPage = reatomComponent(({ ctx }) => {
     const { isPending: joinCompanyLoading, isRejected: joinCompanyRejected } =
         ctx.spy(joinCompany.statusesAtom)
     const joinCompanyError = ctx.spy(joinCompany.errorAtom)
+    const firstCompany = user?.companies?.[0]
+
+    if (firstCompany) {
+        return (
+            <Navigate
+                to={`/companies/${firstCompany.company_id}`}
+                replace
+            />
+        )
+    }
 
     return (
-        <Layout>
-            <Sider trigger={null} collapsible collapsed={sidebarCollapsed}>
-                <div className="demo-logo-vertical" />
-                <SSidebarToggle>
-                    <Button
-                        style={{ color: 'white' }}
-                        type="text"
-                        icon={
-                            sidebarCollapsed ? (
-                                <MenuUnfoldOutlined />
-                            ) : (
-                                <MenuFoldOutlined />
-                            )
-                        }
-                        onClick={() =>
-                            sidebarCollapsedAtom(ctx, !sidebarCollapsed)
-                        }
-                    />
-                </SSidebarToggle>
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    defaultSelectedKeys={['1']}
-                    items={[
-                        {
-                            key: '1',
-                            icon: <UserOutlined />,
-                            label: 'Мой профиль',
-                        },
-                    ]}
-                />
-            </Sider>
+        <SPage>
+            <Header
+                showProfileLink
+                variant="light"
+            />
+
             <SContent>
                 <SEmptyState>
                     <SEmptyText>
-                        У вас нет компании и вы не состоите в компании. Создайте
-                        компанию или присоединитесь к существующей.
+                        У вас нет компании и вы не состоите в компании.
+                        Создайте компанию или присоединитесь к существующей.
                     </SEmptyText>
 
                     <SActions>
@@ -187,6 +170,6 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                     </Button>
                 </SModalContent>
             </Modal>
-        </Layout>
+        </SPage>
     )
 })
