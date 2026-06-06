@@ -1,12 +1,15 @@
 import styled from 'styled-components';
 
+type CompanyTheme = 'light' | 'dark';
+
 export const SCompanyPageWrapper =
-    styled.div`
+    styled.div<{ $theme: CompanyTheme }>`
         min-height: 100vh;
 
-        background: #0f172a;
+        background: ${({ $theme }) =>
+            $theme === 'dark' ? '#0f172a' : '#f5f9ff'};
 
-        color: white;
+        color: ${({ $theme }) => ($theme === 'dark' ? '#ffffff' : '#0f172a')};
 
         display: flex;
         flex-direction: column;
@@ -21,7 +24,16 @@ export const SCompanyContent =
     `;
 
 export const SPageTitle = styled.h1`
+    margin: 0;
+`;
+
+export const SCompanyHeader = styled.div`
     margin-bottom: 24px;
+`;
+
+export const SCompanyRole = styled.div`
+    margin-top: 8px;
+    color: #64748b;
 `;
 
 export const SFilters = styled.div`

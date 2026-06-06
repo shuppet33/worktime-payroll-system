@@ -1,9 +1,16 @@
-import { Alert, Button, Input, Modal } from 'antd'
-import { LockOutlined, UserOutlined } from '@ant-design/icons'
+import { Alert, Button, Input, Modal, Switch } from 'antd'
+import {
+    LockOutlined,
+    MoonOutlined,
+    SunOutlined,
+    UserOutlined,
+} from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
 import { useNavigate } from 'react-router'
+
+import { appThemeAtom } from '$shared/theme.ts'
 
 import {
     loginAtom,
@@ -28,6 +35,7 @@ import {
 } from './styles'
 
 export const MainPage = reatomComponent(({ ctx }) => {
+    const appTheme = ctx.spy(appThemeAtom)
     const loginModalOpen = ctx.spy(loginModalOpenAtom)
     const registerModalOpen = ctx.spy(registerModalOpenAtom)
 
@@ -39,21 +47,32 @@ export const MainPage = reatomComponent(({ ctx }) => {
     const registerLogin = ctx.spy(registerLoginAtom)
     const registerPassword = ctx.spy(registerPasswordAtom)
     const registerConfirmPassword = ctx.spy(registerConfirmPasswordAtom)
-    
+
     const login = ctx.spy(loginAtom)
     const password = ctx.spy(passwordAtom)
 
-    const { isPending: loginLoading, isRejected: loginRejected } = ctx.spy(loginUser.statusesAtom)
+    const { isPending: loginLoading, isRejected: loginRejected } = ctx.spy(
+        loginUser.statusesAtom,
+    )
     const loginError = ctx.spy(loginUser.errorAtom)
 
     const navigate = useNavigate()
 
     return (
-        <SPage>
-            <SHeader>
-                <SLogo>Payroll System</SLogo>
+        <SPage $theme={appTheme}>
+            <SHeader $theme={appTheme}>
+                <SLogo $theme={appTheme}>Payroll System</SLogo>
 
                 <SHeaderActions>
+                    <Switch
+                        checked={appTheme === 'dark'}
+                        checkedChildren={<MoonOutlined />}
+                        unCheckedChildren={<SunOutlined />}
+                        onChange={(checked) => {
+                            appThemeAtom(ctx, checked ? 'dark' : 'light')
+                        }}
+                    />
+
                     <Button onClick={() => registerModalOpenAtom(ctx, true)}>
                         Зарегистрироваться
                     </Button>
@@ -70,13 +89,15 @@ export const MainPage = reatomComponent(({ ctx }) => {
             <SContent>
                 <STitle>PAYROLL SYSTEM</STitle>
 
-                <SDescription>
+                <SDescription $theme={appTheme}>
                     Современная система автоматизации расчета заработной платы,
                     управления компаниями, сотрудниками и начислениями.
                 </SDescription>
             </SContent>
 
-            <SFooter>© 2026 Никишова Алена Германовна · 24-ИСиП-10</SFooter>
+            <SFooter $theme={appTheme}>
+                © 2026 Никишова Алена Германовна · 24-ИСиП-10
+            </SFooter>
 
             <Modal
                 title="Вход"
@@ -126,7 +147,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
 
                             loginAtom(ctx, '')
                             passwordAtom(ctx, '')
-                            loginModalOpenAtom(ctx, !loginModalOpen)
+                            loginModalOpenAtom(ctx, false)
 
                             navigate('/account')
                         } catch (error) {
@@ -144,7 +165,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
                 footer={null}
                 onCancel={() => {
                     registerUser.errorAtom.reset(ctx)
-                    registerModalOpenAtom(ctx, !registerModalOpen)
+                    registerModalOpenAtom(ctx, false)
                 }}
             >
                 {registerRejected && registerError && (
@@ -156,7 +177,9 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     placeholder="Логин"
                     value={registerLogin}
                     prefix={<UserOutlined />}
-                    onChange={(e) => registerLoginAtom(ctx, e.target.value)}
+                    onChange={(event) =>
+                        registerLoginAtom(ctx, event.target.value)
+                    }
                 />
 
                 <Input.Password
@@ -194,11 +217,16 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     style={{
                         marginTop: 20,
                     }}
-                    onClick={() => {
-                        registerUser.errorAtom.reset(ctx)
-                        registerUser(ctx)
+                    onClick={async () => {
+                        try {
+                            registerUser.errorAtom.reset(ctx)
+                            await registerUser(ctx)
 
-                        registerModalOpenAtom(ctx, !registerModalOpen)
+                            registerModalOpenAtom(ctx, false)
+                            navigate('/account')
+                        } catch (error) {
+                            console.error(error)
+                        }
                     }}
                 >
                     Зарегистрироваться

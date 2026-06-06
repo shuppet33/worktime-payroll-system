@@ -3,9 +3,8 @@ import styled from 'styled-components'
 type HeaderVariant = 'dark' | 'light'
 
 export const SHeader = styled.header<{ $variant: HeaderVariant }>`
-    height: ${({ $variant }) => ($variant === 'light' ? '72px' : '80px')};
-    padding: ${({ $variant }) =>
-        $variant === 'light' ? '0 48px' : '0 32px'};
+    height: 72px;
+    padding: 0 48px;
 
     display: flex;
     align-items: center;
@@ -36,4 +35,9 @@ export const SHeaderActions = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+
+    .ant-btn,
+    .ant-switch {
+        flex: 0 0 auto;
+    }
 `

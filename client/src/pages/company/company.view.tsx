@@ -1,43 +1,85 @@
-import {Button, Input, Select} from 'antd';
+import { Button, Input, Select } from 'antd'
 
-import {reatomComponent} from '@reatom/npm-react';
+import { reatomComponent } from '@reatom/npm-react'
 
-import {Footer} from '$widgets/layout/footer'
-import {Header} from '$widgets/layout/header';
+import { Navigate, useParams } from 'react-router'
 
-import {CompanyEmployeeCard} from '$features/company/company-employee-card';
-import {CompanyEmployeeModal} from '$features/company/company-employee-modal';
+import { Footer } from '$widgets/layout/footer'
+import { Header } from '$widgets/layout/header'
 
-import {MOCK_EMPLOYEES} from '$entities/employee';
+import { CompanyEmployeeCard } from '$features/company/company-employee-card'
+import { CompanyEmployeeModal } from '$features/company/company-employee-modal'
 
-import {employeeModalOpenAtom, selectedEmployeeAtom} from './company.model.ts';
-import {SCompanyContent, SCompanyGrid, SCompanyPageWrapper, SFilters, SPageTitle, SSearchWrapper} from './styles';
+import { userAtom } from '$entities/auth.ts'
+import { MOCK_EMPLOYEES } from '$entities/employee'
 
-export const CompanyPage = reatomComponent(({ctx}) => {
-    const employeeModalOpen = ctx.spy(employeeModalOpenAtom);
-    const selectedEmployeeId = ctx.spy(selectedEmployeeAtom);
+import { appThemeAtom } from '$shared/theme.ts'
+
+import { employeeModalOpenAtom, selectedEmployeeAtom } from './company.model.ts'
+import {
+    SCompanyContent,
+    SCompanyGrid,
+    SCompanyHeader,
+    SCompanyPageWrapper,
+    SCompanyRole,
+    SFilters,
+    SPageTitle,
+    SSearchWrapper,
+} from './styles'
+
+export const CompanyPage = reatomComponent(({ ctx }) => {
+    const { companyId } = useParams()
+    const user = ctx.spy(userAtom)
+    const appTheme = ctx.spy(appThemeAtom)
+    const employeeModalOpen = ctx.spy(employeeModalOpenAtom)
+    const selectedEmployeeId = ctx.spy(selectedEmployeeAtom)
+
+    const companies = user?.companies ?? []
+    const firstCompany = companies[0]
+    const selectedCompany = companies.find(
+        (company) => company.company_id === companyId,
+    )
+
+    if (!firstCompany) {
+        return <Navigate to="/account" replace />
+    }
+
+    if (!selectedCompany) {
+        return (
+            <Navigate
+                to={`/companies/${firstCompany.company_id}`}
+                replace
+            />
+        )
+    }
 
     const selectedEmployee = MOCK_EMPLOYEES.find(
         (employee) => employee.id === selectedEmployeeId,
-    );
+    )
 
     const handleSelectEmployee = (employeeId: number) => {
-        selectedEmployeeAtom(ctx, employeeId);
-        employeeModalOpenAtom(ctx, true);
-    };
+        selectedEmployeeAtom(ctx, employeeId)
+        employeeModalOpenAtom(ctx, true)
+    }
 
     const handleCloseEmployeeModal = () => {
-        employeeModalOpenAtom(ctx, false);
-    };
+        employeeModalOpenAtom(ctx, false)
+    }
 
     return (
-        <SCompanyPageWrapper>
-            <Header />
+        <SCompanyPageWrapper $theme={appTheme}>
+            <Header showProfileLink />
 
             <SCompanyContent>
-                <SPageTitle>
-                    Сотрудники
-                </SPageTitle>
+                <SCompanyHeader>
+                    <SPageTitle>
+                        {selectedCompany.company_name}
+                    </SPageTitle>
+
+                    <SCompanyRole>
+                        Должность: {selectedCompany.role}
+                    </SCompanyRole>
+                </SCompanyHeader>
 
                 <SFilters>
                     <Button type="primary">
@@ -45,9 +87,7 @@ export const CompanyPage = reatomComponent(({ctx}) => {
                     </Button>
 
                     <SSearchWrapper>
-                        <Input
-                            placeholder="Поиск по имени"
-                        />
+                        <Input placeholder="Поиск по имени" />
                     </SSearchWrapper>
 
                     <Select
@@ -92,24 +132,16 @@ export const CompanyPage = reatomComponent(({ctx}) => {
                 </SFilters>
 
                 <SCompanyGrid>
-                    {MOCK_EMPLOYEES.map(
-                        (employee) => (
-                            <CompanyEmployeeCard
-                                key={
-                                    employee.id
-                                }
-                                employee={
-                                    employee
-                                }
-                                onSelect={
-                                    handleSelectEmployee
-                                }
-                            />
-                        ),
-                    )}
+                    {MOCK_EMPLOYEES.map((employee) => (
+                        <CompanyEmployeeCard
+                            key={employee.id}
+                            employee={employee}
+                            onSelect={handleSelectEmployee}
+                        />
+                    ))}
                 </SCompanyGrid>
             </SCompanyContent>
-            
+
             <Footer />
 
             <CompanyEmployeeModal
@@ -118,5 +150,5 @@ export const CompanyPage = reatomComponent(({ctx}) => {
                 onClose={handleCloseEmployeeModal}
             />
         </SCompanyPageWrapper>
-    );
-});
+    )
+})

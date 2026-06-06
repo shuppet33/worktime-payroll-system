@@ -5,79 +5,36 @@ import {
     withStatusesAtom,
 } from '@reatom/framework'
 
-import { API_URL } from '$shared/api/url.ts'
+import { tokenAtom } from '$entities/auth.ts'
 
-type CreateCompanyPayload = {
-    name: string
-}
-
-type JoinCompanyPayload = {
-    inviteLink: string
-}
+import {
+    createCompanyRequest,
+    joinCompanyRequest,
+} from '$shared/companies/companies.ts'
 
 export const createCompanyModalOpenAtom = atom(
     false,
     'createCompanyModalOpenAtom',
 )
-export const joinCompanyModalOpenAtom = atom(
-    false,
-    'joinCompanyModalOpenAtom',
-)
+export const joinCompanyModalOpenAtom = atom(false, 'joinCompanyModalOpenAtom')
 
 export const companyNameAtom = atom('', 'companyNameAtom')
 export const inviteLinkAtom = atom('', 'inviteLinkAtom')
 
-export const createCompanyRequest = async (payload: CreateCompanyPayload) => {
-    const token = localStorage.getItem('token')
-
-    const response = await fetch(`${API_URL}/companies`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(payload),
-    })
-
-    const data = await response.json().catch(() => null)
-
-    if (!response.ok) {
-        throw new Error(data?.message ?? 'Не удалось создать компанию')
-    }
-
-    return data
-}
-
-export const joinCompanyRequest = async (payload: JoinCompanyPayload) => {
-    const token = localStorage.getItem('token')
-
-    const response = await fetch(`${API_URL}/companies/join`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(payload),
-    })
-
-    const data = await response.json().catch(() => null)
-
-    if (!response.ok) {
-        throw new Error(data?.message ?? 'Не удалось присоединиться к компании')
-    }
-
-    return data
-}
-
 export const createCompany = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const name = ctx.get(companyNameAtom).trim()
+        const token = ctx.get(tokenAtom)
 
         if (!name) {
             throw new Error('Введите название компании')
         }
 
-        const result = await createCompanyRequest({
+        if (!token) {
+            throw new Error('Ошибка авторизации')
+        }
+
+        const result = await createCompanyRequest(token, {
             name,
         })
 
@@ -91,12 +48,17 @@ export const createCompany = reatomAsync((ctx) => {
 export const joinCompany = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const inviteLink = ctx.get(inviteLinkAtom).trim()
+        const token = ctx.get(tokenAtom)
 
         if (!inviteLink) {
             throw new Error('Введите ссылку-приглашение')
         }
 
-        const result = await joinCompanyRequest({
+        if (!token) {
+            throw new Error('Ошибка авторизации')
+        }
+
+        const result = await joinCompanyRequest(token, {
             inviteLink,
         })
 

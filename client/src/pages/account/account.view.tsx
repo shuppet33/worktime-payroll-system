@@ -2,7 +2,11 @@ import { Alert, Button, Input, Modal } from 'antd'
 
 import { reatomComponent } from '@reatom/npm-react'
 
+import { Navigate } from 'react-router'
+
 import { Header } from '$widgets/layout/header'
+
+import { userAtom } from '$entities/auth.ts'
 
 import {
     companyNameAtom,
@@ -22,6 +26,7 @@ import {
 } from './styles'
 
 export const AccountPage = reatomComponent(({ ctx }) => {
+    const user = ctx.spy(userAtom)
     const createCompanyModalOpen = ctx.spy(createCompanyModalOpenAtom)
     const joinCompanyModalOpen = ctx.spy(joinCompanyModalOpenAtom)
     const companyName = ctx.spy(companyNameAtom)
@@ -36,6 +41,16 @@ export const AccountPage = reatomComponent(({ ctx }) => {
     const { isPending: joinCompanyLoading, isRejected: joinCompanyRejected } =
         ctx.spy(joinCompany.statusesAtom)
     const joinCompanyError = ctx.spy(joinCompany.errorAtom)
+    const firstCompany = user?.companies?.[0]
+
+    if (firstCompany) {
+        return (
+            <Navigate
+                to={`/companies/${firstCompany.company_id}`}
+                replace
+            />
+        )
+    }
 
     return (
         <SPage>
@@ -85,7 +100,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                     {createCompanyRejected && createCompanyError && (
                         <Alert
                             type="error"
-                            message={createCompanyError.message}
+                            title={createCompanyError.message}
                         />
                     )}
 
