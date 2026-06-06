@@ -13,6 +13,7 @@
     "@ant-design/icons": "6.2.3",
     "@reatom/framework": "3.4.68",
     "@reatom/npm-react": "3.10.6",
+    "@reatom/persist-web-storage": "3.4.6",
     "antd": "6.4.3",
     "dayjs": "1.11.20",
     "react": "19.2.6",

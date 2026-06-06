@@ -1,10 +1,14 @@
 import styled from 'styled-components'
 
-export const SPage = styled.div`
+type AccountTheme = 'light' | 'dark'
+
+export const SPage = styled.div<{ $theme: AccountTheme }>`
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: #ffffff;
+    background: ${({ $theme }) =>
+        $theme === 'dark' ? '#0f172a' : '#f5f9ff'};
+    color: ${({ $theme }) => ($theme === 'dark' ? '#ffffff' : '#0f172a')};
 `
 
 export const SContent = styled.main`
@@ -13,7 +17,6 @@ export const SContent = styled.main`
     align-items: center;
     justify-content: center;
     padding: 40px;
-    background: #ffffff;
 `
 
 export const SEmptyState = styled.section`
@@ -24,10 +27,10 @@ export const SEmptyState = styled.section`
     text-align: center;
 `
 
-export const SEmptyText = styled.p`
+export const SEmptyText = styled.p<{ $theme: AccountTheme }>`
     max-width: 460px;
     margin: 0;
-    color: #111827;
+    color: ${({ $theme }) => ($theme === 'dark' ? '#cbd5e1' : '#111827')};
     font-size: 16px;
     line-height: 1.45;
 `

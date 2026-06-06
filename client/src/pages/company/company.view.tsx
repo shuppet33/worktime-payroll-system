@@ -13,6 +13,7 @@ import { CompanyEmployeeModal } from '$features/company/company-employee-modal'
 import { userAtom } from '$entities/auth.ts'
 import { MOCK_EMPLOYEES } from '$entities/employee'
 
+import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
 import { employeeModalOpenAtom, selectedEmployeeAtom } from './company.model.ts'
@@ -31,11 +32,15 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
     const { companyId } = useParams()
     const user = ctx.spy(userAtom)
     const appTheme = ctx.spy(appThemeAtom)
+    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
     const employeeModalOpen = ctx.spy(employeeModalOpenAtom)
     const selectedEmployeeId = ctx.spy(selectedEmployeeAtom)
 
     const companies = user?.companies ?? []
     const firstCompany = companies[0]
+    const savedCompany = companies.find(
+        (company) => company.company_id === selectedCompanyId,
+    )
     const selectedCompany = companies.find(
         (company) => company.company_id === companyId,
     )
@@ -45,13 +50,17 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
     }
 
     if (!selectedCompany) {
+        const fallbackCompany = savedCompany ?? firstCompany
+
         return (
             <Navigate
-                to={`/companies/${firstCompany.company_id}`}
+                to={`/companies/${fallbackCompany.company_id}`}
                 replace
             />
         )
     }
+
+    selectedCompanyIdAtom(ctx, selectedCompany.company_id)
 
     const selectedEmployee = MOCK_EMPLOYEES.find(
         (employee) => employee.id === selectedEmployeeId,

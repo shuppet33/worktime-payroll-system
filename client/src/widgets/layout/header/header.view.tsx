@@ -14,6 +14,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 
 import { userAtom } from '$entities/auth.ts'
 
+import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
 import { logoutUser } from './header.model'
@@ -36,12 +37,16 @@ export const Header = reatomComponent<HeaderProps>(
         const { companyId } = useParams()
         const user = ctx.spy(userAtom)
         const appTheme = ctx.spy(appThemeAtom)
+        const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
         const { isPending: logoutLoading } = ctx.spy(logoutUser.statusesAtom)
         const headerVariant = variant ?? appTheme
 
         const companies = user?.companies ?? []
         const selectedCompany =
             companies.find((company) => company.company_id === companyId) ??
+            companies.find(
+                (company) => company.company_id === selectedCompanyId,
+            ) ??
             companies[0]
         const companyItems: MenuProps['items'] = companies.map((company) => ({
             key: company.company_id,
@@ -61,6 +66,7 @@ export const Header = reatomComponent<HeaderProps>(
                                 items: companyItems,
                                 selectedKeys: [selectedCompany.company_id],
                                 onClick: ({ key }) => {
+                                    selectedCompanyIdAtom(ctx, key)
                                     navigate(`/companies/${key}`)
                                 },
                             }}

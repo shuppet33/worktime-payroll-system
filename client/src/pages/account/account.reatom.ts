@@ -5,7 +5,7 @@ import {
     withStatusesAtom,
 } from '@reatom/framework'
 
-import { tokenAtom } from '$entities/auth.ts'
+import { tokenAtom, userAtom } from '$entities/auth.ts'
 
 import {
     createCompanyRequest,
@@ -25,6 +25,7 @@ export const createCompany = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const name = ctx.get(companyNameAtom).trim()
         const token = ctx.get(tokenAtom)
+        const user = ctx.get(userAtom)
 
         if (!name) {
             throw new Error('Введите название компании')
@@ -34,14 +35,28 @@ export const createCompany = reatomAsync((ctx) => {
             throw new Error('Ошибка авторизации')
         }
 
-        const result = await createCompanyRequest(token, {
+        const company = await createCompanyRequest(token, {
             name,
         })
+
+        const createdCompany = {
+            id: company.id,
+            role: 'OWNER',
+            company_id: company.id,
+            company_name: company.name,
+        }
+
+        if (user) {
+            userAtom(ctx, {
+                ...user,
+                companies: [...(user.companies ?? []), createdCompany],
+            })
+        }
 
         companyNameAtom(ctx, '')
         createCompanyModalOpenAtom(ctx, false)
 
-        return result
+        return company
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 

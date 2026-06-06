@@ -2,11 +2,14 @@ import { Alert, Button, Input, Modal } from 'antd'
 
 import { reatomComponent } from '@reatom/npm-react'
 
-import { Navigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 
 import { Header } from '$widgets/layout/header'
 
 import { userAtom } from '$entities/auth.ts'
+
+import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
+import { appThemeAtom } from '$shared/theme.ts'
 
 import {
     companyNameAtom,
@@ -26,7 +29,10 @@ import {
 } from './styles'
 
 export const AccountPage = reatomComponent(({ ctx }) => {
+    const navigate = useNavigate()
     const user = ctx.spy(userAtom)
+    const appTheme = ctx.spy(appThemeAtom)
+    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
     const createCompanyModalOpen = ctx.spy(createCompanyModalOpenAtom)
     const joinCompanyModalOpen = ctx.spy(joinCompanyModalOpenAtom)
     const companyName = ctx.spy(companyNameAtom)
@@ -41,29 +47,42 @@ export const AccountPage = reatomComponent(({ ctx }) => {
     const { isPending: joinCompanyLoading, isRejected: joinCompanyRejected } =
         ctx.spy(joinCompany.statusesAtom)
     const joinCompanyError = ctx.spy(joinCompany.errorAtom)
-    const firstCompany = user?.companies?.[0]
 
-    if (firstCompany) {
+    const companies = user?.companies ?? []
+    const selectedCompany =
+        companies.find((company) => company.company_id === selectedCompanyId) ??
+        companies[0]
+
+    if (selectedCompany) {
+        selectedCompanyIdAtom(ctx, selectedCompany.company_id)
+
         return (
-            <Navigate
-                to={`/companies/${firstCompany.company_id}`}
-                replace
-            />
+            <Navigate to={`/companies/${selectedCompany.company_id}`} replace />
         )
     }
 
+    const handleCreateCompany = async () => {
+        try {
+            createCompany.errorAtom.reset(ctx)
+
+            const company = await createCompany(ctx)
+
+            selectedCompanyIdAtom(ctx, company.id)
+            navigate(`/companies/${company.id}`)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
     return (
-        <SPage>
-            <Header
-                showProfileLink
-                variant="light"
-            />
+        <SPage $theme={appTheme}>
+            <Header showProfileLink />
 
             <SContent>
                 <SEmptyState>
-                    <SEmptyText>
-                        У вас нет компании и вы не состоите в компании.
-                        Создайте компанию или присоединитесь к существующей.
+                    <SEmptyText $theme={appTheme}>
+                        У вас нет компании и вы не состоите в компании. Создайте
+                        компанию или присоединитесь к существующей.
                     </SEmptyText>
 
                     <SActions>
@@ -71,7 +90,10 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                             size="large"
                             type="primary"
                             onClick={() =>
-                                createCompanyModalOpenAtom(ctx, true)
+                                createCompanyModalOpenAtom(
+                                    ctx,
+                                    !createCompanyModalOpen,
+                                )
                             }
                         >
                             Создать
@@ -79,7 +101,12 @@ export const AccountPage = reatomComponent(({ ctx }) => {
 
                         <Button
                             size="large"
-                            onClick={() => joinCompanyModalOpenAtom(ctx, true)}
+                            onClick={() =>
+                                joinCompanyModalOpenAtom(
+                                    ctx,
+                                    !joinCompanyModalOpen,
+                                )
+                            }
                         >
                             Присоединиться
                         </Button>
@@ -111,7 +138,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                         onChange={(event) =>
                             companyNameAtom(ctx, event.target.value)
                         }
-                        onPressEnter={() => createCompany(ctx)}
+                        onPressEnter={handleCreateCompany}
                     />
 
                     <Button
@@ -119,10 +146,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                         size="large"
                         type="primary"
                         loading={createCompanyLoading}
-                        onClick={() => {
-                            createCompany.errorAtom.reset(ctx)
-                            createCompany(ctx)
-                        }}
+                        onClick={handleCreateCompany}
                     >
                         Создать
                     </Button>
@@ -140,10 +164,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
             >
                 <SModalContent>
                     {joinCompanyRejected && joinCompanyError && (
-                        <Alert
-                            type="error"
-                            title={joinCompanyError.message}
-                        />
+                        <Alert type="error" title={joinCompanyError.message} />
                     )}
 
                     <Input

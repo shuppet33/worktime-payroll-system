@@ -4,11 +4,20 @@ type CreateCompanyPayload = {
     name: string
 }
 
+export type Company = {
+    id: string
+    name: string
+    created_at: string
+}
+
 type JoinCompanyPayload = {
     inviteLink: string
 }
 
-export const createCompanyRequest = async (token: string, payload: CreateCompanyPayload) => {
+export const createCompanyRequest = async (
+    token: string,
+    payload: CreateCompanyPayload,
+): Promise<Company> => {
     const response = await fetch(`${API_URL}/companies/create`, {
         method: 'POST',
         headers: {
@@ -24,7 +33,7 @@ export const createCompanyRequest = async (token: string, payload: CreateCompany
         throw new Error(data?.message ?? 'Не удалось создать компанию')
     }
 
-    return data
+    return data.company
 }
 
 export const joinCompanyRequest = async (token: string, payload: JoinCompanyPayload) => {
