@@ -9,3 +9,7 @@ companiesRouter.post('/create', authMiddleware, companyController.create)
 companiesRouter.get('/', authMiddleware, companyController.getAll)
 
 companiesRouter.get('/:companyId', authMiddleware, companyController.getById)
+
+companiesRouter.patch('/:companyId', authMiddleware, companyController.update)
+
+companiesRouter.delete('/:companyId', authMiddleware, companyController.delete)

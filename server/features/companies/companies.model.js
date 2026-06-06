@@ -64,4 +64,58 @@ export const companyModel = {
 
         return rows[0] || null
     },
+
+    async updateCompanyName({ companyId, name }) {
+        const { rows } = await connectDB.query(
+            `
+        UPDATE companies
+        SET name = $1
+        WHERE id = $2
+        RETURNING id as "companyId", name
+        `,
+            [name, companyId],
+        )
+
+        return rows[0] || null
+    },
+
+    async deleteCompany({ companyId, userId }) {
+        const { rows: memberRows } = await connectDB.query(
+            `
+        SELECT role
+        FROM company_members
+        WHERE company_id = $1 AND user_id = $2
+        `,
+            [companyId, userId],
+        )
+
+        const member = memberRows[0]
+
+        if (!member) {
+            return null
+        }
+
+        if (member.role !== 'OWNER') {
+            throw new Error('FORBIDDEN')
+        }
+
+        await connectDB.query(
+            `
+        DELETE FROM company_members
+        WHERE company_id = $1
+        `,
+            [companyId],
+        )
+
+        const { rows } = await connectDB.query(
+            `
+        DELETE FROM companies
+        WHERE id = $1
+        RETURNING id as "companyId"
+        `,
+            [companyId],
+        )
+
+        return rows[0] || null
+    },
 }
