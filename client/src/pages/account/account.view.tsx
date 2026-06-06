@@ -1,12 +1,8 @@
-import { Alert, Button, Input, Layout, Menu, Modal } from 'antd'
-import Sider from 'antd/es/layout/Sider'
-import {
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-    UserOutlined,
-} from '@ant-design/icons'
+import { Alert, Button, Input, Modal } from 'antd'
 
 import { reatomComponent } from '@reatom/npm-react'
+
+import { Header } from '$widgets/layout/header'
 
 import {
     companyNameAtom,
@@ -15,7 +11,6 @@ import {
     inviteLinkAtom,
     joinCompany,
     joinCompanyModalOpenAtom,
-    sidebarCollapsedAtom,
 } from './account.reatom.ts'
 import {
     SActions,
@@ -23,11 +18,10 @@ import {
     SEmptyState,
     SEmptyText,
     SModalContent,
-    SSidebarToggle,
+    SPage,
 } from './styles'
 
 export const AccountPage = reatomComponent(({ ctx }) => {
-    const sidebarCollapsed = ctx.spy(sidebarCollapsedAtom)
     const createCompanyModalOpen = ctx.spy(createCompanyModalOpenAtom)
     const joinCompanyModalOpen = ctx.spy(joinCompanyModalOpenAtom)
     const companyName = ctx.spy(companyNameAtom)
@@ -44,43 +38,17 @@ export const AccountPage = reatomComponent(({ ctx }) => {
     const joinCompanyError = ctx.spy(joinCompany.errorAtom)
 
     return (
-        <Layout>
-            <Sider trigger={null} collapsible collapsed={sidebarCollapsed}>
-                <div className="demo-logo-vertical" />
-                <SSidebarToggle>
-                    <Button
-                        style={{ color: 'white' }}
-                        type="text"
-                        icon={
-                            sidebarCollapsed ? (
-                                <MenuUnfoldOutlined />
-                            ) : (
-                                <MenuFoldOutlined />
-                            )
-                        }
-                        onClick={() =>
-                            sidebarCollapsedAtom(ctx, !sidebarCollapsed)
-                        }
-                    />
-                </SSidebarToggle>
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    defaultSelectedKeys={['1']}
-                    items={[
-                        {
-                            key: '1',
-                            icon: <UserOutlined />,
-                            label: 'Мой профиль',
-                        },
-                    ]}
-                />
-            </Sider>
+        <SPage>
+            <Header
+                showProfileLink
+                variant="light"
+            />
+
             <SContent>
                 <SEmptyState>
                     <SEmptyText>
-                        У вас нет компании и вы не состоите в компании. Создайте
-                        компанию или присоединитесь к существующей.
+                        У вас нет компании и вы не состоите в компании.
+                        Создайте компанию или присоединитесь к существующей.
                     </SEmptyText>
 
                     <SActions>
@@ -117,7 +85,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                     {createCompanyRejected && createCompanyError && (
                         <Alert
                             type="error"
-                            title={createCompanyError.message}
+                            message={createCompanyError.message}
                         />
                     )}
 
@@ -187,6 +155,6 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                     </Button>
                 </SModalContent>
             </Modal>
-        </Layout>
+        </SPage>
     )
 })

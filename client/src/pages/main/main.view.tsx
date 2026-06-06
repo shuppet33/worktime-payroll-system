@@ -126,6 +126,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
 
                             loginAtom(ctx, '')
                             passwordAtom(ctx, '')
+                            loginModalOpenAtom(ctx, !loginModalOpen)
 
                             navigate('/account')
                         } catch (error) {
@@ -143,7 +144,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
                 footer={null}
                 onCancel={() => {
                     registerUser.errorAtom.reset(ctx)
-                    registerModalOpenAtom(ctx, false)
+                    registerModalOpenAtom(ctx, !registerModalOpen)
                 }}
             >
                 {registerRejected && registerError && (
@@ -196,6 +197,8 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     onClick={() => {
                         registerUser.errorAtom.reset(ctx)
                         registerUser(ctx)
+
+                        registerModalOpenAtom(ctx, !registerModalOpen)
                     }}
                 >
                     Зарегистрироваться

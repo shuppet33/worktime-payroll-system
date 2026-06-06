@@ -15,8 +15,6 @@ type JoinCompanyPayload = {
     inviteLink: string
 }
 
-export const sidebarCollapsedAtom = atom(false, 'sidebarCollapsedAtom')
-
 export const createCompanyModalOpenAtom = atom(
     false,
     'createCompanyModalOpenAtom',

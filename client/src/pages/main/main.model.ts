@@ -7,7 +7,7 @@ import {
 
 import { tokenAtom, userAtom } from '$entities/auth.ts'
 
-import { loginRequest, registerRequest } from '$shared/auth/auth.ts'
+import { loginRequest, meRequest, registerRequest } from '$shared/auth/auth.ts'
 
 export const loginModalOpenAtom = atom(false)
 export const registerModalOpenAtom = atom(false)
@@ -75,6 +75,26 @@ export const registerUser = reatomAsync((ctx) => {
         userAtom(ctx, {
             id: user.id,
             login: user.login,
+        })
+
+        return user
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
+
+export const getMe = reatomAsync((ctx) => {
+    return ctx.schedule(async () => {
+        const token = ctx.get(tokenAtom)
+
+        if (!token) {
+            throw new Error('Нет токена')
+        }
+
+        const user = await meRequest(token)
+
+        userAtom(ctx, {
+            id: user.id,
+            login: user.login,
+            companies: user.companies,
         })
 
         return user
