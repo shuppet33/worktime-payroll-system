@@ -5,6 +5,8 @@ import {
     withStatusesAtom,
 } from '@reatom/framework'
 
+import { tokenAtom, userAtom } from '$entities/auth.ts'
+
 import { loginRequest, registerRequest } from '$shared/auth/auth.ts'
 
 export const loginModalOpenAtom = atom(false)
@@ -20,7 +22,6 @@ export const registerConfirmPasswordAtom = atom('')
 export const loginUser = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const login = ctx.get(loginAtom)
-
         const password = ctx.get(passwordAtom)
 
         if (!login.trim()) {
@@ -31,10 +32,19 @@ export const loginUser = reatomAsync((ctx) => {
             throw new Error('Введите пароль')
         }
 
-        return loginRequest({
+        const { token, user, companies } = await loginRequest({
             login,
             password,
         })
+
+        tokenAtom(ctx, token)
+        userAtom(ctx, {
+            id: user.id,
+            login: user.login,
+            companies,
+        })
+
+        return user
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 
@@ -56,9 +66,17 @@ export const registerUser = reatomAsync((ctx) => {
             throw new Error('Пароли не совпадают')
         }
 
-        return registerRequest({
+        const { token, user } = await registerRequest({
             login,
             password,
         })
+
+        tokenAtom(ctx, token)
+        userAtom(ctx, {
+            id: user.id,
+            login: user.login,
+        })
+
+        return user
     })
 }).pipe(withStatusesAtom(), withErrorAtom())

@@ -3,6 +3,8 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
+import { useNavigate } from 'react-router'
+
 import {
     loginAtom,
     loginModalOpenAtom,
@@ -43,6 +45,8 @@ export const MainPage = reatomComponent(({ ctx }) => {
 
     const { isPending: loginLoading, isRejected: loginRejected } = ctx.spy(loginUser.statusesAtom)
     const loginError = ctx.spy(loginUser.errorAtom)
+
+    const navigate = useNavigate()
 
     return (
         <SPage>
@@ -114,13 +118,19 @@ export const MainPage = reatomComponent(({ ctx }) => {
                         marginTop: 20,
                     }}
                     loading={loginLoading}
-                    onChange={() => {
-                        loginUser.errorAtom.reset(ctx)
+                    onClick={async () => {
+                        try {
+                            loginUser.errorAtom.reset(ctx)
 
-                        loginAtom(ctx, '')
-                        passwordAtom(ctx, '')
+                            await loginUser(ctx)
 
-                        loginUser(ctx)
+                            loginAtom(ctx, '')
+                            passwordAtom(ctx, '')
+
+                            navigate('/account')
+                        } catch (error) {
+                            console.error(error)
+                        }
                     }}
                 >
                     Войти

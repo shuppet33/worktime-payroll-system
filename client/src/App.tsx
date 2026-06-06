@@ -1,24 +1,30 @@
-import {Route, Routes} from "react-router";
+import { reatomComponent } from '@reatom/npm-react'
 
-import {CompanyPage} from "$pages/company";
-import {EmployeePage} from "$pages/employee";
-import {LoginPage} from "$pages/login";
+import { Navigate, Outlet, Route, Routes } from 'react-router'
+
+import { AccountPage } from '$pages/account'
 import { MainPage } from '$pages/main/main.view.tsx'
 
+import { tokenAtom } from '$entities/auth.ts'
+
+const PrivateRoutes = reatomComponent(({ ctx }) => {
+    const token = ctx.spy(tokenAtom)
+    if (!token) {
+        return <Navigate to="/" replace />
+    }
+
+    return <Outlet />
+})
+
 function App() {
-
     return (
-        <>
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
+        <Routes>
+            <Route path="/" element={<MainPage />} />
 
-                <Route path="/employee" element={<EmployeePage />} />
-
-                <Route path="/company" element={<CompanyPage />} />
-            </Routes>
-
-            <MainPage />
-        </>
+            <Route element={<PrivateRoutes />}>
+                <Route path="/account" element={<AccountPage />} />
+            </Route>
+        </Routes>
     )
 }
 
