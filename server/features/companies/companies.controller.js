@@ -47,4 +47,35 @@ export const companyController = {
             })
         }
     },
+
+    async getById(req, res) {
+        try {
+            const { companyId } = req.params
+
+            if (!companyId) {
+                return res.status(400).json({
+                    message: 'companyId обязателен',
+                })
+            }
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            return res.status(200).json(company)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка получения компании',
+            })
+        }
+    },
 }

@@ -47,4 +47,21 @@ export const companyModel = {
 
         return rows
     },
+
+    async getCompanyById({ companyId, userId }) {
+        const { rows } = await connectDB.query(
+            `
+        SELECT 
+            c.id as "companyId",
+            c.name,
+            cm.role
+        FROM company_members cm
+        JOIN companies c ON c.id = cm.company_id
+        WHERE cm.user_id = $1 AND c.id = $2
+        `,
+            [userId, companyId],
+        )
+
+        return rows[0] || null
+    },
 }

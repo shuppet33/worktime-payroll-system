@@ -7,3 +7,5 @@ export const companiesRouter = Router()
 companiesRouter.post('/create', authMiddleware, companyController.create)
 
 companiesRouter.get('/', authMiddleware, companyController.getAll)
+
+companiesRouter.get('/:companyId', authMiddleware, companyController.getById)
