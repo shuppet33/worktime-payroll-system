@@ -1,4 +1,4 @@
-import { connectDB } from '../../db/index.js'
+import { connectDB } from '../../db/connect-db.js'
 
 export const userModel = {
     async getByLogin(login) {
@@ -28,8 +28,6 @@ export const userModel = {
     },
 
     async create({ id, login, passwordHash }) {
-
-        console.log('LOOOG 2', id)
 
         const { rows } = await connectDB.query(
             `
