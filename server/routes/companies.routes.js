@@ -5,3 +5,5 @@ import { authMiddleware } from '../middleware/auth.middleware.js'
 export const companiesRouter = Router()
 
 companiesRouter.post('/create', authMiddleware, companyController.create)
+
+companiesRouter.get('/', authMiddleware, companyController.getAll)

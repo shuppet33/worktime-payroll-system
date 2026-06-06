@@ -22,7 +22,6 @@ export const companyController = {
                 ownerId: req.user.id,
             })
 
-
             return res.status(201).json({
                 company,
             })
@@ -31,6 +30,20 @@ export const companyController = {
 
             return res.status(500).json({
                 message: 'Ошибка создания компании',
+            })
+        }
+    },
+
+    async getAll(req, res) {
+        try {
+            const companies = await companyModel.getUserCompanies(req.user.id)
+
+            return res.status(200).json(companies)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка получения компаний',
             })
         }
     },

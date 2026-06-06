@@ -29,4 +29,22 @@ export const companyModel = {
             throw error
         }
     },
+
+    async getUserCompanies(userId) {
+        const { rows } = await connectDB.query(
+            `
+            SELECT 
+                c.id as "companyId",
+                c.name,
+                cm.role
+            FROM company_members cm
+            JOIN companies c ON c.id = cm.company_id
+            WHERE cm.user_id = $1
+            ORDER BY c.name ASC
+            `,
+            [userId],
+        )
+
+        return rows
+    },
 }
