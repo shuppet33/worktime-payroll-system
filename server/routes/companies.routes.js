@@ -13,3 +13,16 @@ companiesRouter.get('/:companyId', authMiddleware, companyController.getById)
 companiesRouter.patch('/:companyId', authMiddleware, companyController.update)
 
 companiesRouter.delete('/:companyId', authMiddleware, companyController.delete)
+
+companiesRouter.get(
+    '/:companyId/members',
+    authMiddleware,
+    companyController.getMembers,
+)
+
+companiesRouter.patch(
+    '/:companyId/members/:memberId',
+    authMiddleware,
+    companyController.updateMemberRole,
+)
+
