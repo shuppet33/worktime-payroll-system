@@ -138,11 +138,8 @@ export const companyModel = {
                 FROM company_members cm
                 JOIN users u ON u.id = cm.user_id
                 WHERE cm.company_id = $1
+                  AND cm.role <> 'OWNER'
                 ORDER BY
-                    CASE
-                        WHEN cm.role = 'OWNER' THEN 1
-                        ELSE 2
-                    END,
                     u.login
             `,
             [companyId],
@@ -163,6 +160,37 @@ export const companyModel = {
                     role
             `,
             [role, companyId, memberId],
+        )
+
+        return rows[0] || null
+    },
+
+    async deleteMember({ companyId, memberId }) {
+        const { rows } = await connectDB.query(
+            `
+                DELETE FROM company_members
+                WHERE company_id = $1
+                  AND user_id = $2
+                RETURNING
+                    user_id as "id",
+                    role
+            `,
+            [companyId, memberId],
+        )
+
+        return rows[0] || null
+    },
+    async getMemberById({ companyId, memberId }) {
+        const { rows } = await connectDB.query(
+            `
+        SELECT
+            user_id as "id",
+            role
+        FROM company_members
+        WHERE company_id = $1
+          AND user_id = $2
+        `,
+            [companyId, memberId],
         )
 
         return rows[0] || null
