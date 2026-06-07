@@ -196,7 +196,7 @@ export const companyController = {
 
             if (!role) {
                 return res.status(400).json({
-                    message: 'Роль обязательна',
+                    message: 'поле role обязательно',
                 })
             }
 
@@ -237,6 +237,5 @@ export const companyController = {
                 message: 'Ошибка изменения роли',
             })
         }
-    }
-
+    },
 }

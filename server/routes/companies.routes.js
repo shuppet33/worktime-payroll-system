@@ -25,4 +25,3 @@ companiesRouter.patch(
     authMiddleware,
     companyController.updateMemberRole,
 )
-
