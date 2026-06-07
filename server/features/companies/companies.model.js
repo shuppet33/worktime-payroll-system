@@ -68,11 +68,11 @@ export const companyModel = {
     async updateCompanyName({ companyId, name }) {
         const { rows } = await connectDB.query(
             `
-        UPDATE companies
-        SET name = $1
-        WHERE id = $2
-        RETURNING id as "companyId", name
-        `,
+                UPDATE companies
+                SET name = $1
+                WHERE id = $2
+                RETURNING id as "companyId", name
+            `,
             [name, companyId],
         )
 
@@ -114,6 +114,55 @@ export const companyModel = {
         RETURNING id as "companyId"
         `,
             [companyId],
+        )
+
+        return rows[0] || null
+    },
+
+    async getCompanyMembers({ companyId, userId }) {
+        const access = await this.getCompanyById({
+            companyId,
+            userId,
+        })
+
+        if (!access) {
+            return null
+        }
+
+        const { rows } = await connectDB.query(
+            `
+                SELECT
+                    u.id,
+                    u.login,
+                    cm.role
+                FROM company_members cm
+                JOIN users u ON u.id = cm.user_id
+                WHERE cm.company_id = $1
+                ORDER BY
+                    CASE
+                        WHEN cm.role = 'OWNER' THEN 1
+                        ELSE 2
+                    END,
+                    u.login
+            `,
+            [companyId],
+        )
+
+        return rows
+    },
+
+    async updateMemberRole({ companyId, memberId, role }) {
+        const { rows } = await connectDB.query(
+            `
+                UPDATE company_members
+                SET role = $1
+                WHERE company_id = $2
+                  AND user_id = $3
+                RETURNING
+                    user_id as "id",
+                    role
+            `,
+            [role, companyId, memberId],
         )
 
         return rows[0] || null

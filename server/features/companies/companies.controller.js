@@ -164,5 +164,78 @@ export const companyController = {
         }
     },
 
+    async getMembers(req, res) {
+        try {
+            const { companyId } = req.params
 
+            const members = await companyModel.getCompanyMembers({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!members) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            return res.status(200).json(members)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка получения участников',
+            })
+        }
+    },
+
+    async updateMemberRole(req, res) {
+        try {
+            const { companyId, memberId } = req.params
+            const { role } = req.body
+
+            if (!role) {
+                return res.status(400).json({
+                    message: 'поле role обязательно',
+                })
+            }
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            if (company.role !== 'OWNER') {
+                return res.status(403).json({
+                    message: 'Недостаточно прав',
+                })
+            }
+
+            const member = await companyModel.updateMemberRole({
+                companyId,
+                memberId,
+                role,
+            })
+
+            if (!member) {
+                return res.status(404).json({
+                    message: 'Участник не найден',
+                })
+            }
+
+            return res.status(200).json(member)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка изменения роли',
+            })
+        }
+    },
 }
