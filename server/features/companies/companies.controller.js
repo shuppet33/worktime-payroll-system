@@ -238,4 +238,60 @@ export const companyController = {
             })
         }
     },
+
+    async deleteMember(req, res) {
+        try {
+            const { companyId, memberId } = req.params
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            if (company.role !== 'OWNER') {
+                return res.status(403).json({
+                    message: 'Недостаточно прав',
+                })
+            }
+
+            const memberToDelete = await companyModel.getMemberById({
+                companyId,
+                memberId,
+            })
+
+            if (!memberToDelete) {
+                return res.status(404).json({
+                    message: 'Участник не найден',
+                })
+            }
+
+            if (memberToDelete.role === 'OWNER') {
+                return res.status(400).json({
+                    message: 'Нельзя удалить владельца компании',
+                })
+            }
+
+            const deletedMember = await companyModel.deleteMember({
+                companyId,
+                memberId,
+            })
+
+            return res.status(200).json({
+                message: 'Участник удалён',
+                member: deletedMember,
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка удаления участника',
+            })
+        }
+    }
 }
