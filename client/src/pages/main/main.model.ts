@@ -1,6 +1,8 @@
 import {
     atom,
     reatomAsync,
+    reatomResource,
+    withDataAtom,
     withErrorAtom,
     withStatusesAtom,
 } from '@reatom/framework'
@@ -19,7 +21,7 @@ export const registerLoginAtom = atom('')
 export const registerPasswordAtom = atom('')
 export const registerConfirmPasswordAtom = atom('')
 
-export const loginUser = reatomAsync((ctx) => {
+export const loginAsync = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const login = ctx.get(loginAtom)
         const password = ctx.get(passwordAtom)
@@ -48,7 +50,7 @@ export const loginUser = reatomAsync((ctx) => {
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 
-export const registerUser = reatomAsync((ctx) => {
+export const registerAsync = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const login = ctx.get(registerLoginAtom)
         const password = ctx.get(registerPasswordAtom)
@@ -81,22 +83,21 @@ export const registerUser = reatomAsync((ctx) => {
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 
-export const getMe = reatomAsync((ctx) => {
-    return ctx.schedule(async () => {
-        const token = ctx.get(tokenAtom)
+export const meResource = reatomResource(async (ctx) => {
+    const token = ctx.spy(tokenAtom)
+    const user = ctx.spy(userAtom)
 
-        if (!token) {
-            throw new Error('Нет токена')
-        }
-
-        const user = await meRequest(token)
-
-        userAtom(ctx, {
-            id: user.id,
-            login: user.login,
-            companies: user.companies,
-        })
-
+    if (!token || user) {
         return user
+    }
+
+    const actualUser = await meRequest(token)
+
+    userAtom(ctx, {
+        id: actualUser.id,
+        login: actualUser.login,
+        companies: actualUser.companies,
     })
-}).pipe(withStatusesAtom(), withErrorAtom())
+
+    return actualUser
+}, 'meResource').pipe(withDataAtom(null), withStatusesAtom(), withErrorAtom())

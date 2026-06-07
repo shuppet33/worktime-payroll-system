@@ -13,10 +13,10 @@ import { appThemeAtom } from '$shared/theme.ts'
 
 import {
     companyNameAtom,
-    createCompany,
+    createCompanyAsync,
     createCompanyModalOpenAtom,
     inviteLinkAtom,
-    joinCompany,
+    joinCompanyAsync,
     joinCompanyModalOpenAtom,
 } from './account.reatom.ts'
 import {
@@ -41,12 +41,12 @@ export const AccountPage = reatomComponent(({ ctx }) => {
     const {
         isPending: createCompanyLoading,
         isRejected: createCompanyRejected,
-    } = ctx.spy(createCompany.statusesAtom)
-    const createCompanyError = ctx.spy(createCompany.errorAtom)
+    } = ctx.spy(createCompanyAsync.statusesAtom)
+    const createCompanyError = ctx.spy(createCompanyAsync.errorAtom)
 
     const { isPending: joinCompanyLoading, isRejected: joinCompanyRejected } =
-        ctx.spy(joinCompany.statusesAtom)
-    const joinCompanyError = ctx.spy(joinCompany.errorAtom)
+        ctx.spy(joinCompanyAsync.statusesAtom)
+    const joinCompanyError = ctx.spy(joinCompanyAsync.errorAtom)
 
     const companies = user?.companies ?? []
     const selectedCompany =
@@ -54,7 +54,9 @@ export const AccountPage = reatomComponent(({ ctx }) => {
         companies[0]
 
     if (selectedCompany) {
-        selectedCompanyIdAtom(ctx, selectedCompany.company_id)
+        if (selectedCompanyId !== selectedCompany.company_id) {
+            selectedCompanyIdAtom(ctx, selectedCompany.company_id)
+        }
 
         return (
             <Navigate to={`/companies/${selectedCompany.company_id}`} replace />
@@ -63,9 +65,9 @@ export const AccountPage = reatomComponent(({ ctx }) => {
 
     const handleCreateCompany = async () => {
         try {
-            createCompany.errorAtom.reset(ctx)
+            createCompanyAsync.errorAtom.reset(ctx)
 
-            const company = await createCompany(ctx)
+            const company = await createCompanyAsync(ctx)
 
             selectedCompanyIdAtom(ctx, company.id)
             navigate(`/companies/${company.id}`)
@@ -119,7 +121,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                 open={createCompanyModalOpen}
                 footer={null}
                 onCancel={() => {
-                    createCompany.errorAtom.reset(ctx)
+                    createCompanyAsync.errorAtom.reset(ctx)
                     createCompanyModalOpenAtom(ctx, false)
                 }}
             >
@@ -158,7 +160,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                 open={joinCompanyModalOpen}
                 footer={null}
                 onCancel={() => {
-                    joinCompany.errorAtom.reset(ctx)
+                    joinCompanyAsync.errorAtom.reset(ctx)
                     joinCompanyModalOpenAtom(ctx, false)
                 }}
             >
@@ -174,7 +176,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                         onChange={(event) =>
                             inviteLinkAtom(ctx, event.target.value)
                         }
-                        onPressEnter={() => joinCompany(ctx)}
+                        onPressEnter={() => joinCompanyAsync(ctx)}
                     />
 
                     <Button
@@ -183,8 +185,8 @@ export const AccountPage = reatomComponent(({ ctx }) => {
                         type="primary"
                         loading={joinCompanyLoading}
                         onClick={() => {
-                            joinCompany.errorAtom.reset(ctx)
-                            joinCompany(ctx)
+                            joinCompanyAsync.errorAtom.reset(ctx)
+                            joinCompanyAsync(ctx)
                         }}
                     >
                         Присоединиться

@@ -21,7 +21,7 @@ export const joinCompanyModalOpenAtom = atom(false, 'joinCompanyModalOpenAtom')
 export const companyNameAtom = atom('', 'companyNameAtom')
 export const inviteLinkAtom = atom('', 'inviteLinkAtom')
 
-export const createCompany = reatomAsync((ctx) => {
+export const createCompanyAsync = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const name = ctx.get(companyNameAtom).trim()
         const token = ctx.get(tokenAtom)
@@ -60,7 +60,7 @@ export const createCompany = reatomAsync((ctx) => {
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 
-export const joinCompany = reatomAsync((ctx) => {
+export const joinCompanyAsync = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const inviteLink = ctx.get(inviteLinkAtom).trim()
         const token = ctx.get(tokenAtom)

@@ -1,28 +1,38 @@
-import { Button, Input, Select } from 'antd'
+import { Button, Input } from 'antd'
+import { SettingOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
-import { Navigate, useParams } from 'react-router'
+import { Navigate, useNavigate, useParams } from 'react-router'
 
 import { Footer } from '$widgets/layout/footer'
 import { Header } from '$widgets/layout/header'
 
-import { CompanyEmployeeCard } from '$features/company/company-employee-card'
-import { CompanyEmployeeModal } from '$features/company/company-employee-modal'
+import {
+    deleteCompanyAsync,
+    membersResource,
+} from '$features/company/company.service.ts'
+import { CompanyMembersGrid } from '$features/company/company-members-grid'
+import { CompanyModals } from '$features/company/company-modals'
+import {
+    openDeleteMemberModalAction,
+    openSettingsModalAction,
+    selectedMemberForDeleteIdAtom,
+    selectedMemberIdAtom,
+    selectMemberAction,
+} from '$features/company/company-modals/company-modals.reatom.ts'
 
 import { userAtom } from '$entities/auth.ts'
-import { MOCK_EMPLOYEES } from '$entities/employee'
 
 import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { employeeModalOpenAtom, selectedEmployeeAtom } from './company.model.ts'
 import {
     SCompanyContent,
-    SCompanyGrid,
     SCompanyHeader,
     SCompanyPageWrapper,
     SCompanyRole,
+    SFilterActions,
     SFilters,
     SPageTitle,
     SSearchWrapper,
@@ -30,11 +40,12 @@ import {
 
 export const CompanyPage = reatomComponent(({ ctx }) => {
     const { companyId } = useParams()
+    const navigate = useNavigate()
     const user = ctx.spy(userAtom)
     const appTheme = ctx.spy(appThemeAtom)
     const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
-    const employeeModalOpen = ctx.spy(employeeModalOpenAtom)
-    const selectedEmployeeId = ctx.spy(selectedEmployeeAtom)
+    const selectedMemberId = ctx.spy(selectedMemberIdAtom)
+    const selectedMemberForDeleteId = ctx.spy(selectedMemberForDeleteIdAtom)
 
     const companies = user?.companies ?? []
     const firstCompany = companies[0]
@@ -53,26 +64,53 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
         const fallbackCompany = savedCompany ?? firstCompany
 
         return (
-            <Navigate
-                to={`/companies/${fallbackCompany.company_id}`}
-                replace
-            />
+            <Navigate to={`/companies/${fallbackCompany.company_id}`} replace />
         )
     }
 
-    selectedCompanyIdAtom(ctx, selectedCompany.company_id)
-
-    const selectedEmployee = MOCK_EMPLOYEES.find(
-        (employee) => employee.id === selectedEmployeeId,
-    )
-
-    const handleSelectEmployee = (employeeId: number) => {
-        selectedEmployeeAtom(ctx, employeeId)
-        employeeModalOpenAtom(ctx, true)
+    if (selectedCompanyId !== selectedCompany.company_id) {
+        selectedCompanyIdAtom(ctx, selectedCompany.company_id)
     }
 
-    const handleCloseEmployeeModal = () => {
-        employeeModalOpenAtom(ctx, false)
+    const membersData = ctx.spy(membersResource.dataAtom)
+    const {
+        isPending: membersLoading,
+        isRejected: membersRejected,
+    } = ctx.spy(membersResource.statusesAtom)
+    const membersError = ctx.spy(membersResource.errorAtom)
+
+    const members =
+        membersData.companyId === selectedCompany.company_id
+            ? membersData.members
+            : []
+
+    const selectedMember = members.find(
+        (member) => member.id === selectedMemberId,
+    )
+    const selectedMemberForDelete = members.find(
+        (member) => member.id === selectedMemberForDeleteId,
+    )
+
+    const canManageCompany = selectedCompany.role === 'OWNER'
+
+    const handleConfirmDeleteCompany = async () => {
+        try {
+            deleteCompanyAsync.errorAtom.reset(ctx)
+            await deleteCompanyAsync(ctx, selectedCompany.company_id)
+
+            const nextCompany = ctx.get(userAtom)?.companies?.[0]
+
+            if (nextCompany) {
+                selectedCompanyIdAtom(ctx, nextCompany.company_id)
+                navigate(`/companies/${nextCompany.company_id}`)
+                return
+            }
+
+            selectedCompanyIdAtom(ctx, null)
+            navigate('/account')
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     return (
@@ -81,9 +119,7 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
 
             <SCompanyContent>
                 <SCompanyHeader>
-                    <SPageTitle>
-                        {selectedCompany.company_name}
-                    </SPageTitle>
+                    <SPageTitle>{selectedCompany.company_name}</SPageTitle>
 
                     <SCompanyRole>
                         Должность: {selectedCompany.role}
@@ -91,72 +127,52 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                 </SCompanyHeader>
 
                 <SFilters>
-                    <Button type="primary">
-                        Добавить сотрудника
-                    </Button>
+                    <SFilterActions>
+                        <Button type="primary">Добавить сотрудника</Button>
+
+                        {canManageCompany && (
+                            <Button
+                                aria-label="Настройки компании"
+                                icon={<SettingOutlined />}
+                                onClick={() => {
+                                    deleteCompanyAsync.errorAtom.reset(ctx)
+                                    openSettingsModalAction(
+                                        ctx,
+                                        selectedCompany.company_name,
+                                    )
+                                }}
+                            />
+                        )}
+                    </SFilterActions>
 
                     <SSearchWrapper>
                         <Input placeholder="Поиск по имени" />
                     </SSearchWrapper>
-
-                    <Select
-                        allowClear
-                        placeholder="Тип ставки"
-                        style={{
-                            width: 220,
-                        }}
-                        options={[
-                            {
-                                value: 'hourly',
-                                label: 'Почасовая',
-                            },
-                            {
-                                value: 'fixed',
-                                label: 'Фиксированная',
-                            },
-                        ]}
-                    />
-
-                    <Select
-                        allowClear
-                        placeholder="Должность"
-                        style={{
-                            width: 240,
-                        }}
-                        options={[
-                            {
-                                value: 'frontend',
-                                label: 'Frontend Developer',
-                            },
-                            {
-                                value: 'backend',
-                                label: 'Backend Developer',
-                            },
-                            {
-                                value: 'designer',
-                                label: 'Designer',
-                            },
-                        ]}
-                    />
                 </SFilters>
 
-                <SCompanyGrid>
-                    {MOCK_EMPLOYEES.map((employee) => (
-                        <CompanyEmployeeCard
-                            key={employee.id}
-                            employee={employee}
-                            onSelect={handleSelectEmployee}
-                        />
-                    ))}
-                </SCompanyGrid>
+                <CompanyMembersGrid
+                    canDelete={canManageCompany}
+                    error={membersError}
+                    loading={membersLoading}
+                    members={members}
+                    showError={membersRejected}
+                    onDelete={(memberId) => {
+                        deleteCompanyAsync.errorAtom.reset(ctx)
+                        openDeleteMemberModalAction(ctx, memberId)
+                    }}
+                    onSelect={(memberId) =>
+                        selectMemberAction(ctx, memberId)
+                    }
+                />
             </SCompanyContent>
 
             <Footer />
 
-            <CompanyEmployeeModal
-                employee={selectedEmployee}
-                open={employeeModalOpen}
-                onClose={handleCloseEmployeeModal}
+            <CompanyModals
+                selectedCompany={selectedCompany}
+                selectedMember={selectedMember}
+                selectedMemberForDelete={selectedMemberForDelete}
+                onConfirmDeleteCompany={handleConfirmDeleteCompany}
             />
         </SCompanyPageWrapper>
     )

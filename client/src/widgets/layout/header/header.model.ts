@@ -8,7 +8,7 @@ import { tokenAtom, userAtom } from '$entities/auth.ts'
 
 import { logoutRequest } from '$shared/auth/auth.ts'
 
-export const logoutUser = reatomAsync((ctx) => {
+export const logoutAsync = reatomAsync((ctx) => {
     return ctx.schedule(async () => {
         const token = ctx.get(tokenAtom)
 

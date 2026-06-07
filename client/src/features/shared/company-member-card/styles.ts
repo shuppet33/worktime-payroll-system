@@ -1,9 +1,11 @@
 import styled from 'styled-components'
 
-type EmployeeCardTheme = 'light' | 'dark'
+type MemberCardTheme = 'light' | 'dark'
 
-export const SEmployeeCard = styled.div<{ $theme: EmployeeCardTheme }>`
+export const SMemberCard = styled.div<{ $theme: MemberCardTheme }>`
+    position: relative;
     padding: 20px;
+    padding-right: 48px;
     min-height: 132px;
     border: 1px solid
         ${({ $theme }) =>
@@ -30,17 +32,47 @@ export const SEmployeeCard = styled.div<{ $theme: EmployeeCardTheme }>`
     }
 `
 
-export const SEmployeeName = styled.div`
+export const SMemberDeleteButton = styled.button<{
+    $theme: MemberCardTheme
+}>`
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: ${({ $theme }) =>
+        $theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f8fafc'};
+    color: ${({ $theme }) => ($theme === 'dark' ? '#cbd5e1' : '#64748b')};
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+
+    &:hover {
+        background: #fff1f0;
+        color: #ff4d4f;
+    }
+`
+
+export const SMemberLogin = styled.div`
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 12px;
 `
 
-export const SEmployeePosition = styled.div<{ $theme: EmployeeCardTheme }>`
+export const SMemberMeta = styled.div<{ $theme: MemberCardTheme }>`
     color: ${({ $theme }) => ($theme === 'dark' ? '#cbd5e1' : '#64748b')};
     margin-bottom: 8px;
 `
 
-export const SEmployeeType = styled.div`
+export const SMemberRole = styled.div`
     color: #1677ff;
 `

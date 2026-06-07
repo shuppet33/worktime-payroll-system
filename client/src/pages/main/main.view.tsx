@@ -13,15 +13,15 @@ import { useNavigate } from 'react-router'
 import { appThemeAtom } from '$shared/theme.ts'
 
 import {
+    loginAsync,
     loginAtom,
     loginModalOpenAtom,
-    loginUser,
     passwordAtom,
+    registerAsync,
     registerConfirmPasswordAtom,
     registerLoginAtom,
     registerModalOpenAtom,
     registerPasswordAtom,
-    registerUser,
 } from './main.model'
 import {
     SContent,
@@ -40,9 +40,9 @@ export const MainPage = reatomComponent(({ ctx }) => {
     const registerModalOpen = ctx.spy(registerModalOpenAtom)
 
     const { isPending: registerLoading, isRejected: registerRejected } = ctx.spy(
-        registerUser.statusesAtom,
+        registerAsync.statusesAtom,
     )
-    const registerError = ctx.spy(registerUser.errorAtom)
+    const registerError = ctx.spy(registerAsync.errorAtom)
 
     const registerLogin = ctx.spy(registerLoginAtom)
     const registerPassword = ctx.spy(registerPasswordAtom)
@@ -52,9 +52,9 @@ export const MainPage = reatomComponent(({ ctx }) => {
     const password = ctx.spy(passwordAtom)
 
     const { isPending: loginLoading, isRejected: loginRejected } = ctx.spy(
-        loginUser.statusesAtom,
+        loginAsync.statusesAtom,
     )
-    const loginError = ctx.spy(loginUser.errorAtom)
+    const loginError = ctx.spy(loginAsync.errorAtom)
 
     const navigate = useNavigate()
 
@@ -104,7 +104,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
                 open={loginModalOpen}
                 footer={null}
                 onCancel={() => {
-                    loginUser.errorAtom.reset(ctx)
+                    loginAsync.errorAtom.reset(ctx)
                     loginModalOpenAtom(ctx, false)
                 }}
             >
@@ -141,9 +141,9 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     loading={loginLoading}
                     onClick={async () => {
                         try {
-                            loginUser.errorAtom.reset(ctx)
+                            loginAsync.errorAtom.reset(ctx)
 
-                            await loginUser(ctx)
+                            await loginAsync(ctx)
 
                             loginAtom(ctx, '')
                             passwordAtom(ctx, '')
@@ -164,7 +164,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
                 open={registerModalOpen}
                 footer={null}
                 onCancel={() => {
-                    registerUser.errorAtom.reset(ctx)
+                    registerAsync.errorAtom.reset(ctx)
                     registerModalOpenAtom(ctx, false)
                 }}
             >
@@ -219,8 +219,8 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     }}
                     onClick={async () => {
                         try {
-                            registerUser.errorAtom.reset(ctx)
-                            await registerUser(ctx)
+                            registerAsync.errorAtom.reset(ctx)
+                            await registerAsync(ctx)
 
                             registerModalOpenAtom(ctx, false)
                             navigate('/account')

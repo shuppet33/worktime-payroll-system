@@ -17,7 +17,7 @@ import { userAtom } from '$entities/auth.ts'
 import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { logoutUser } from './header.model'
+import { logoutAsync } from './header.model'
 import { SHeader, SHeaderActions, SLogo } from './styles'
 
 type HeaderProps = {
@@ -35,10 +35,12 @@ export const Header = reatomComponent<HeaderProps>(
     }) => {
         const navigate = useNavigate()
         const { companyId } = useParams()
+
         const user = ctx.spy(userAtom)
         const appTheme = ctx.spy(appThemeAtom)
         const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
-        const { isPending: logoutLoading } = ctx.spy(logoutUser.statusesAtom)
+
+        const { isPending: logoutLoading } = ctx.spy(logoutAsync.statusesAtom)
         const headerVariant = variant ?? appTheme
 
         const companies = user?.companies ?? []
@@ -100,8 +102,8 @@ export const Header = reatomComponent<HeaderProps>(
                         icon={<LogoutOutlined />}
                         loading={logoutLoading}
                         onClick={async () => {
-                            logoutUser.errorAtom.reset(ctx)
-                            await logoutUser(ctx)
+                            logoutAsync.errorAtom.reset(ctx)
+                            await logoutAsync(ctx)
                             navigate('/')
                         }}
                     >
