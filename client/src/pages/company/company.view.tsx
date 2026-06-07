@@ -8,10 +8,7 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { Footer } from '$widgets/layout/footer'
 import { Header } from '$widgets/layout/header'
 
-import {
-    deleteCompanyAsync,
-    membersResource,
-} from '$features/company/company.service.ts'
+import { deleteAsync, membersResource } from '$features/company/company.service.ts'
 import { CompanyMembersGrid } from '$features/company/company-members-grid'
 import { CompanyModals } from '$features/company/company-modals'
 import {
@@ -49,9 +46,11 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
 
     const companies = user?.companies ?? []
     const firstCompany = companies[0]
+
     const savedCompany = companies.find(
         (company) => company.company_id === selectedCompanyId,
     )
+
     const selectedCompany = companies.find(
         (company) => company.company_id === companyId,
     )
@@ -95,8 +94,8 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
 
     const handleConfirmDeleteCompany = async () => {
         try {
-            deleteCompanyAsync.errorAtom.reset(ctx)
-            await deleteCompanyAsync(ctx, selectedCompany.company_id)
+            deleteAsync.errorAtom.reset(ctx)
+            await deleteAsync(ctx, selectedCompany.company_id)
 
             const nextCompany = ctx.get(userAtom)?.companies?.[0]
 
@@ -135,7 +134,7 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                                 aria-label="Настройки компании"
                                 icon={<SettingOutlined />}
                                 onClick={() => {
-                                    deleteCompanyAsync.errorAtom.reset(ctx)
+                                    deleteAsync.errorAtom.reset(ctx)
                                     openSettingsModalAction(
                                         ctx,
                                         selectedCompany.company_name,
@@ -157,23 +156,23 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                     members={members}
                     showError={membersRejected}
                     onDelete={(memberId) => {
-                        deleteCompanyAsync.errorAtom.reset(ctx)
+                        deleteAsync.errorAtom.reset(ctx)
                         openDeleteMemberModalAction(ctx, memberId)
                     }}
                     onSelect={(memberId) =>
                         selectMemberAction(ctx, memberId)
                     }
                 />
+
+                <CompanyModals
+                    selectedCompany={selectedCompany}
+                    selectedMember={selectedMember}
+                    selectedMemberForDelete={selectedMemberForDelete}
+                    onConfirmDeleteCompany={handleConfirmDeleteCompany}
+                />
             </SCompanyContent>
 
             <Footer />
-
-            <CompanyModals
-                selectedCompany={selectedCompany}
-                selectedMember={selectedMember}
-                selectedMemberForDelete={selectedMemberForDelete}
-                onConfirmDeleteCompany={handleConfirmDeleteCompany}
-            />
         </SCompanyPageWrapper>
     )
 })

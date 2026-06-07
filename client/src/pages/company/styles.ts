@@ -3,7 +3,7 @@ import styled from 'styled-components'
 type CompanyTheme = 'light' | 'dark'
 
 export const SCompanyPageWrapper = styled.div<{ $theme: CompanyTheme }>`
-    min-height: 100vh;
+    height: 100vh;
 
     background: ${({ $theme }) => ($theme === 'dark' ? '#0f172a' : '#f5f9ff')};
 
@@ -11,12 +11,18 @@ export const SCompanyPageWrapper = styled.div<{ $theme: CompanyTheme }>`
 
     display: flex;
     flex-direction: column;
+
+    overflow: hidden;
 `
 
 export const SCompanyContent = styled.main`
     flex: 1;
+    min-height: 0;
 
     padding: 28px 32px;
+
+    display: flex;
+    flex-direction: column;
 `
 
 export const SPageTitle = styled.h1`

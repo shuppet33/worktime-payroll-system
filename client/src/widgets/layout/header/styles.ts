@@ -3,6 +3,7 @@ import styled from 'styled-components'
 type HeaderVariant = 'dark' | 'light'
 
 export const SHeader = styled.header<{ $variant: HeaderVariant }>`
+    flex: 0 0 72px;
     height: 72px;
     padding: 0 48px;
 

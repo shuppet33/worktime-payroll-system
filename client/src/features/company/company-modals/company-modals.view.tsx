@@ -45,10 +45,8 @@ export const CompanyModals = reatomComponent<Props>(
         } = ctx.spy(updateNameAsync.statusesAtom)
         const updateNameError = ctx.spy(updateNameAsync.errorAtom)
 
-        const {
-            isPending: deleteLoading,
-            isRejected: deleteRejected,
-        } = ctx.spy(deleteAsync.statusesAtom)
+        const { isPending: deleteLoading, isRejected: deleteRejected } =
+            ctx.spy(deleteAsync.statusesAtom)
         const deleteError = ctx.spy(deleteAsync.errorAtom)
 
         const handleUpdateCompanyName = async () => {

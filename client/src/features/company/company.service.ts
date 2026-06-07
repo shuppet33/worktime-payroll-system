@@ -105,7 +105,7 @@ export const updateNameAsync = reatomAsync((ctx, companyId: string) => {
     })
 }).pipe(withStatusesAtom(), withErrorAtom())
 
-export const deleteCompanyAsync = reatomAsync((ctx, companyId: string) => {
+export const deleteAsync = reatomAsync((ctx, companyId: string) => {
     return ctx.schedule(async () => {
         const token = ctx.get(tokenAtom)
         const user = ctx.get(userAtom)
