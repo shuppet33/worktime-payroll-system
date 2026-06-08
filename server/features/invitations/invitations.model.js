@@ -24,10 +24,8 @@ export const invitationModel = {
     },
 
     async acceptByToken({ id, token, userId }) {
-        const client = await connectDB.connect()
-
         try {
-            const { rows: invitationRows } = await client.query(
+            const { rows: invitationRows } = await connectDB.query(
                 `
                     SELECT
                         i.id,
@@ -58,7 +56,7 @@ export const invitationModel = {
                 return { error: 'EXPIRED' }
             }
 
-            const { rows: memberRows } = await client.query(
+            const { rows: memberRows } = await connectDB.query(
                 `
                     SELECT id
                     FROM company_members
@@ -72,7 +70,7 @@ export const invitationModel = {
                 return { error: 'ALREADY_MEMBER' }
             }
 
-            const { rows: createdMemberRows } = await client.query(
+            const { rows: createdMemberRows } = await connectDB.query(
                 `
                     INSERT INTO company_members
                     ( id, company_id, user_id, role )
@@ -82,7 +80,7 @@ export const invitationModel = {
                 [id, invitation.companyId, userId, invitation.role],
             )
 
-            await client.query(
+            await connectDB.query(
                 `
                     UPDATE invitations
                     SET is_used = true

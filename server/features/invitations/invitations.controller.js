@@ -1,4 +1,5 @@
 import { invitationModel } from './invitations.model.js'
+import { nanoid } from 'nanoid'
 
 export const invitationController = {
     async getByToken(req, res) {
@@ -56,7 +57,10 @@ export const invitationController = {
                 })
             }
 
+            const id = nanoid(8)
+
             const result = await invitationModel.acceptByToken({
+                id,
                 token,
                 userId: req.user.id,
             })
