@@ -23,12 +23,10 @@ export const invitationModel = {
         return rows[0] || null
     },
 
-    async acceptByToken({ token, userId }) {
+    async acceptByToken({ id, token, userId }) {
         const client = await connectDB.connect()
 
         try {
-            await client.query('BEGIN')
-
             const { rows: invitationRows } = await client.query(
                 `
                     SELECT
@@ -49,17 +47,14 @@ export const invitationModel = {
             const invitation = invitationRows[0]
 
             if (!invitation) {
-                await client.query('ROLLBACK')
                 return { error: 'NOT_FOUND' }
             }
 
             if (invitation.isUsed) {
-                await client.query('ROLLBACK')
                 return { error: 'USED' }
             }
 
             if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-                await client.query('ROLLBACK')
                 return { error: 'EXPIRED' }
             }
 
@@ -74,7 +69,6 @@ export const invitationModel = {
             )
 
             if (memberRows[0]) {
-                await client.query('ROLLBACK')
                 return { error: 'ALREADY_MEMBER' }
             }
 
@@ -85,7 +79,7 @@ export const invitationModel = {
                     VALUES ( $1, $2, $3, $4 )
                     RETURNING id, role
                 `,
-                [nanoid(8), invitation.companyId, userId, invitation.role],
+                [id, invitation.companyId, userId, invitation.role],
             )
 
             await client.query(
@@ -97,8 +91,6 @@ export const invitationModel = {
                 [invitation.id],
             )
 
-            await client.query('COMMIT')
-
             return {
                 company: {
                     id: invitation.companyId,
@@ -107,10 +99,7 @@ export const invitationModel = {
                 member: createdMemberRows[0],
             }
         } catch (error) {
-            await client.query('ROLLBACK')
             throw error
-        } finally {
-            client.release()
         }
     },
 }
