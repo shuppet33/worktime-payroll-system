@@ -152,6 +152,12 @@ export const authController = {
                 })
             }
 
+            if (q !== q.toLowerCase()) {
+                return res.status(400).json({
+                    message: 'Логин должен быть в нижнем регистре. Не кричи на сервер.',
+                })
+            }
+
 
             const login = q.toLowerCase()
 
