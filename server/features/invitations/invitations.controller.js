@@ -98,9 +98,21 @@ export const invitationController = {
                 })
             }
 
-            if (result.error === 'USED') {
+            if (result.error === 'ACCEPTED') {
                 return res.status(400).json({
-                    message: 'Приглашение уже использовано',
+                    message: 'Приглашение уже принято',
+                })
+            }
+
+            if (result.error === 'DECLINED') {
+                return res.status(400).json({
+                    message: 'Приглашение отклонено',
+                })
+            }
+
+            if (result.error === 'REVOKED') {
+                return res.status(400).json({
+                    message: 'Приглашение отозвано',
                 })
             }
 
@@ -117,15 +129,103 @@ export const invitationController = {
             }
 
             return res.status(201).json({
+                companyId: result.companyId,
                 message: 'Приглашение принято',
-                company: result.company,
-                member: result.member,
             })
         } catch (error) {
             console.error(error)
 
             return res.status(500).json({
                 message: 'Ошибка принятия приглашения',
+            })
+        }
+    },
+
+    async decline(req, res) {
+        try {
+            const { token } = req.params
+
+            if (!token) {
+                return res.status(400).json({
+                    message: 'token обязателен',
+                })
+            }
+
+            const invitation = await invitationModel.getByToken(token)
+
+            if (!invitation) {
+                return res.status(404).json({
+                    message: 'Приглашение не найдено',
+                })
+            }
+
+            if (invitation.status !== 'PENDING') {
+                return res.status(400).json({
+                    message: 'Приглашение уже не активно',
+                    status: invitation.status,
+                })
+            }
+
+            await invitationModel.declineByToken(token)
+
+            return res.status(200).json({
+                message: 'Приглашение отклонено',
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка отклонения приглашения',
+            })
+        }
+    },
+
+    async revoke(req, res) {
+        try {
+            const { id } = req.params
+
+            if (!id) {
+                return res.status(400).json({
+                    message: 'id обязателен',
+                })
+            }
+
+            const invitation = await invitationModel.getById(id)
+
+            if (!invitation) {
+                return res.status(404).json({
+                    message: 'Приглашение не найдено',
+                })
+            }
+
+            if (invitation.status !== 'PENDING') {
+                return res.status(400).json({
+                    message: 'Приглашение уже не активно',
+                    status: invitation.status,
+                })
+            }
+
+            const hasAccess = await invitationModel.canRevoke({
+                companyId: invitation.companyId,
+                userId: req.user.id,
+            })
+
+            if (!hasAccess) {
+                return res.status(403).json({
+                    message: 'Нет прав на отзыв приглашения',
+                })
+            }
+
+            await invitationModel.revokeById(id)
+
+            return res.status(200).json({
+                message: 'Приглашение отозвано',
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка отзыва приглашения',
             })
         }
     },
