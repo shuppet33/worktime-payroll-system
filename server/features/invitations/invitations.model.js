@@ -1,5 +1,4 @@
 import { connectDB } from '../../db/connect-db.js'
-import { nanoid } from 'nanoid'
 
 export const invitationModel = {
     async getByToken(token) {
@@ -8,16 +7,31 @@ export const invitationModel = {
                 SELECT
                     i.id,
                     i.token,
-                    i.company_id as "companyId",
-                    c.name as "companyName",
+                    i.company_id AS "companyId",
+                    c.name AS "companyName",
                     i.role,
-                    i.expires_at as "expiresAt",
-                    i.is_used as "isUsed"
+                    i.status,
+                    i.expires_at AS "expiresAt"
                 FROM invitations i
-                JOIN companies c ON c.id = i.company_id
+                         JOIN companies c
+                              ON c.id = i.company_id
                 WHERE i.token = $1
             `,
             [token],
+        )
+
+        return rows[0] || null
+    },
+
+    async updateStatus(id, status) {
+        const { rows } = await connectDB.query(
+            `
+            UPDATE invitations
+            SET status = $2
+            WHERE id = $1
+            RETURNING *
+        `,
+            [id, status],
         )
 
         return rows[0] || null

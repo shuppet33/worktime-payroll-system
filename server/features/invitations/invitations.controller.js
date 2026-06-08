@@ -20,15 +20,41 @@ export const invitationController = {
                 })
             }
 
-            if (invitation.isUsed) {
-                return res.status(400).json({
-                    message: 'Приглашение уже использовано',
+            if (invitation.status === 'EXPIRED') {
+                return res.status(200).json({
+                    status: 'EXPIRED',
                 })
             }
 
-            if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-                return res.status(400).json({
-                    message: 'Срок приглашения истёк',
+            if (invitation.status === 'ACCEPTED') {
+                return res.status(200).json({
+                    status: 'ACCEPTED',
+                })
+            }
+
+            if (invitation.status === 'DECLINED') {
+                return res.status(200).json({
+                    status: 'DECLINED',
+                })
+            }
+
+            if (invitation.status === 'REVOKED') {
+                return res.status(200).json({
+                    status: 'REVOKED',
+                })
+            }
+
+            const isExpired =
+                new Date(invitation.expiresAt).getTime() <= Date.now()
+
+            if (isExpired) {
+                await invitationModel.updateStatus(
+                    invitation.id,
+                    'EXPIRED',
+                )
+
+                return res.status(200).json({
+                    status: 'EXPIRED',
                 })
             }
 
@@ -36,6 +62,7 @@ export const invitationController = {
                 companyId: invitation.companyId,
                 companyName: invitation.companyName,
                 role: invitation.role,
+                status: invitation.status,
                 expiresAt: invitation.expiresAt,
             })
         } catch (error) {

@@ -12,6 +12,5 @@ invitationsRouter.post(
 
 invitationsRouter.get(
     '/:token',
-    authMiddleware,
     invitationController.getByToken,
 )
