@@ -6,10 +6,9 @@ import { Navigate, Outlet, Route, Routes } from 'react-router'
 
 import { AccountPage } from '$pages/account'
 import { CompanyPage } from '$pages/company'
-import { meResource } from '$pages/main/main.reatom.ts'
-import { MainPage } from '$pages/main/main.view.tsx'
+import { MainPage } from '$pages/main'
 
-import { tokenAtom, userAtom } from '$entities/auth.ts'
+import { meResource, tokenAtom, userAtom } from '$entities/auth.ts'
 
 import { appThemeAtom } from '$shared/theme.ts'
 
