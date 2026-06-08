@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid'
 export const authController = {
     async register(req, res) {
         try {
-            const { login, password } = req.body
+            const { login, password, email } = req.body
 
             if (!login || !password) {
                 return res.status(400).json({
@@ -14,7 +14,11 @@ export const authController = {
                 })
             }
 
-            const existingUser = await userModel.getByLogin(login)
+            const normalizedLogin = login.trim()
+            const normalizedEmail =
+                typeof email === 'string' && email.trim() ? email.trim() : null
+
+            const existingUser = await userModel.getByLogin(normalizedLogin)
 
             if (existingUser) {
                 return res.status(409).json({
@@ -28,8 +32,9 @@ export const authController = {
 
             const user = await userModel.create({
                 id: userId,
-                login,
+                login: normalizedLogin,
                 passwordHash,
+                email: normalizedEmail,
             })
 
             const token = generateToken({
@@ -41,6 +46,7 @@ export const authController = {
                 user: {
                     id: user.id,
                     login: user.login,
+                    email: user.email,
                 },
             })
         } catch (error) {
@@ -132,6 +138,33 @@ export const authController = {
 
             return res.status(500).json({
                 message: 'Ошибка получения пользователя',
+            })
+        }
+    },
+
+    async checkLogin(req, res) {
+        try {
+            const { q } = req.query
+
+            if (!q) {
+                return res.status(400).json({
+                    message: 'q обязателен',
+                })
+            }
+
+
+            const login = q.toLowerCase()
+
+            const user = await userModel.getByLogin(login)
+
+            return res.status(200).json({
+                exists: !!user,
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка проверки логина',
             })
         }
     },
