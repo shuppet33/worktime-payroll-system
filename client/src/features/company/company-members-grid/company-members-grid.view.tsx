@@ -2,19 +2,8 @@ import { Alert } from 'antd'
 
 import { CompanyMemberCard } from '$features/shared/company-member-card'
 
-import type { CompanyMember } from '$shared/companies/companies.ts'
-
+import type { CompanyMembersGridProps } from './company-members-grid.types.ts'
 import { SCompanyGrid } from './styles'
-
-type Props = {
-    canDelete: boolean
-    error?: Error
-    loading: boolean
-    members: CompanyMember[]
-    showError: boolean
-    onDelete: (memberId: string) => void
-    onSelect: (memberId: string) => void
-}
 
 export const CompanyMembersGrid = ({
     canDelete,
@@ -24,13 +13,10 @@ export const CompanyMembersGrid = ({
     showError,
     onDelete,
     onSelect,
-}: Props) => {
+}: CompanyMembersGridProps) => {
     return (
         <>
-            {showError && error && (
-                <Alert type="error" title={error.message} />
-            )}
-
+            {showError && error && <Alert type="error" title={error.message} />}
             <SCompanyGrid>
                 {loading && <div>Загрузка сотрудников...</div>}
 

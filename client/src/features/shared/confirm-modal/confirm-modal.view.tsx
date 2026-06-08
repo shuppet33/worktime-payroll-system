@@ -1,18 +1,7 @@
 import { Alert, Modal } from 'antd'
 
+import type { ConfirmModalProps } from './confirm-modal.types.ts'
 import { SModalContent } from './styles'
-
-type Props = {
-    cancelText?: string
-    confirmText?: string
-    error?: Error
-    loading?: boolean
-    message: string
-    open: boolean
-    title: string
-    onCancel: () => void
-    onConfirm: () => void
-}
 
 export const ConfirmModal = ({
     cancelText = 'Отмена',
@@ -24,7 +13,7 @@ export const ConfirmModal = ({
     title,
     onCancel,
     onConfirm,
-}: Props) => {
+}: ConfirmModalProps) => {
     return (
         <Modal
             title={title}

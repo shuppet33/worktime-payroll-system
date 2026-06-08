@@ -1,28 +1,12 @@
 import { API_URL } from '$shared/api/url.ts'
 
-type CreateCompanyPayload = {
-    name: string
-}
-
-type UpdateCompanyPayload = {
-    name: string
-}
-
-export type Company = {
-    id: string
-    name: string
-    created_at: string
-}
-
-export type CompanyMember = {
-    id: string
-    login: string
-    role: string
-}
-
-type JoinCompanyPayload = {
-    inviteLink: string
-}
+import type {
+    Company,
+    CompanyMember,
+    CreateCompanyPayload,
+    JoinCompanyPayload,
+    UpdateCompanyPayload,
+} from './companies.types.ts'
 
 export const createCompanyRequest = async (
     token: string,

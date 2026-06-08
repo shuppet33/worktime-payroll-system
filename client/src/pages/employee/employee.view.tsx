@@ -11,7 +11,12 @@ import {EmployeeProfileCard} from '$features/employee/employee-profile-card'
 
 import {MOCK_DAYS, MOCK_FIXED_DAYS} from "$entities/work-day";
 
-import {calendarMonthAtom, calendarYearAtom, paymentTypeAtom, selectedDayAtom} from "./employee.model.ts";
+import {
+    calendarMonthAtom,
+    calendarYearAtom,
+    paymentTypeAtom,
+    selectedDayAtom,
+} from './employee.reatom.ts'
 import {SContent, SMainGrid, SPage, SRateType, SRightColumn} from './styles.ts'
 
 

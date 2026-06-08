@@ -1,7 +1,6 @@
 import { Select } from 'antd';
 
-import type { PaymentType, WorkDay } from '$entities/work-day';
-
+import type { EmployeeCalendarProps } from './employee-calendar.types.ts';
 import { generateCalendarDays } from './generate-calendar-days.utils';
 import {
     SCalendarCard,
@@ -16,15 +15,6 @@ import {
     SWeekDay,
     SWeekDays,
 } from './styles';
-
-type Props = {
-    month: number;
-    onSelectDay: (day: number) => void;
-    paymentType: PaymentType;
-    selectedDay: number;
-    workDays: WorkDay[];
-    year: number;
-}
 
 const MONTH_OPTIONS = [
     {
@@ -41,7 +31,7 @@ export const EmployeeCalendar =
         selectedDay,
         workDays,
         year,
-    }: Props) => {
+    }: EmployeeCalendarProps) => {
         const days =
             generateCalendarDays(
                 month,

@@ -17,17 +17,6 @@ export const deleteMemberModalOpenAtom = atom(
     'deleteMemberModalOpenAtom',
 )
 
-export const deleteCompanyModalOpenAtom = atom(
-    false,
-    'deleteCompanyModalOpenAtom',
-)
-
-export const settingsModalOpenAtom = atom(false, 'settingsModalOpenAtom')
-
-export const companyNameDraftAtom = atom('', 'companyNameDraftAtom')
-
-export const companyNameEditingAtom = atom(false, 'companyNameEditingAtom')
-
 export const selectMemberAction = action((ctx, memberId: string) => {
     selectedMemberIdAtom(ctx, memberId)
     memberModalOpenAtom(ctx, true)
@@ -42,14 +31,3 @@ export const closeDeleteMemberModalAction = action((ctx) => {
     selectedMemberForDeleteIdAtom(ctx, null)
     deleteMemberModalOpenAtom(ctx, false)
 }, 'closeDeleteMemberModalAction')
-
-export const openSettingsModalAction = action((ctx, companyName: string) => {
-    companyNameDraftAtom(ctx, companyName)
-    companyNameEditingAtom(ctx, false)
-    settingsModalOpenAtom(ctx, true)
-}, 'openSettingsModalAction')
-
-export const closeSettingsModalAction = action((ctx) => {
-    companyNameEditingAtom(ctx, false)
-    settingsModalOpenAtom(ctx, false)
-}, 'closeSettingsModalAction')

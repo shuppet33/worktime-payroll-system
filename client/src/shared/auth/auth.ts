@@ -1,38 +1,31 @@
 import { API_URL } from '$shared/api/url.ts'
 
-export type RegisterPayload = {
-    login: string
-    password: string
-}
+import type {
+    Auth,
+    CheckLoginResponse,
+    Login,
+    LoginPayload,
+    RegisterPayload,
+} from './auth.types.ts'
 
-export type Auth = {
-    token: string
+export const checkLoginRequest = async (
+    q: string,
+    signal?: AbortSignal,
+): Promise<CheckLoginResponse> => {
+    const response = await fetch(
+        `${API_URL}/users/check-login?q=${encodeURIComponent(q)}`,
+        {
+            signal,
+        },
+    )
 
-    user: {
-        id: string
-        login: string
-    }
-}
+    const data = await response.json()
 
-export type LoginPayload = {
-    login: string
-    password: string
-}
-
-export type Login = {
-    token: string
-
-    user: {
-        id: string
-        login: string
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Не удалось проверить логин')
     }
 
-    companies: {
-        id: string
-        role: string
-        company_id: string
-        company_name: string
-    }[]
+    return data
 }
 
 export const registerRequest = async (

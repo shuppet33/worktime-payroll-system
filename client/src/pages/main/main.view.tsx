@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import { Alert, Button, Input, Modal, Switch } from 'antd'
 import {
     LockOutlined,
@@ -10,6 +12,7 @@ import { reatomComponent } from '@reatom/npm-react'
 
 import { useNavigate } from 'react-router'
 
+import { checkLoginRequest } from '$shared/auth/auth.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
 import {
@@ -22,7 +25,7 @@ import {
     registerLoginAtom,
     registerModalOpenAtom,
     registerPasswordAtom,
-} from './main.model'
+} from './main.reatom'
 import {
     SContent,
     SDescription,
@@ -33,6 +36,21 @@ import {
     SPage,
     STitle,
 } from './styles'
+
+type RegisterLoginCheckStatus = 'isLoading' | 'isBusy' | 'isFree'
+
+const registerLoginCheckMessages: Record<RegisterLoginCheckStatus, string> = {
+    isLoading: 'Проверяем логин...',
+    isBusy: 'Такой логин уже занят',
+    isFree: 'Такой логин свободен',
+}
+
+const registerLoginCheckColors: Partial<
+    Record<RegisterLoginCheckStatus, string>
+> = {
+    isBusy: '#cf1322',
+    isFree: '#389e0d',
+}
 
 export const MainPage = reatomComponent(({ ctx }) => {
     const appTheme = ctx.spy(appThemeAtom)
@@ -47,6 +65,10 @@ export const MainPage = reatomComponent(({ ctx }) => {
     const registerLogin = ctx.spy(registerLoginAtom)
     const registerPassword = ctx.spy(registerPasswordAtom)
     const registerConfirmPassword = ctx.spy(registerConfirmPasswordAtom)
+    const trimmedRegisterLogin = registerLogin.trim()
+
+    const [registerLoginCheckStatus, setRegisterLoginCheckStatus] =
+        useState<RegisterLoginCheckStatus | null>(null)
 
     const login = ctx.spy(loginAtom)
     const password = ctx.spy(passwordAtom)
@@ -57,6 +79,49 @@ export const MainPage = reatomComponent(({ ctx }) => {
     const loginError = ctx.spy(loginAsync.errorAtom)
 
     const navigate = useNavigate()
+
+    useEffect(() => {
+        if (!registerModalOpen || !trimmedRegisterLogin) {
+            setRegisterLoginCheckStatus(null)
+            return
+        }
+
+        setRegisterLoginCheckStatus(null)
+
+        const controller = new AbortController()
+        const timeoutId = window.setTimeout(async () => {
+            setRegisterLoginCheckStatus('isLoading')
+
+            try {
+                const { exists } = await checkLoginRequest(
+                    trimmedRegisterLogin,
+                    controller.signal,
+                )
+
+                setRegisterLoginCheckStatus(exists ? 'isBusy' : 'isFree')
+            } catch (error) {
+                if (controller.signal.aborted) {
+                    return
+                }
+
+                setRegisterLoginCheckStatus(null)
+                console.error(error)
+            }
+        }, 250)
+
+        return () => {
+            window.clearTimeout(timeoutId)
+            controller.abort()
+        }
+    }, [registerModalOpen, trimmedRegisterLogin])
+
+    const registerLoginCheckMessage = registerLoginCheckStatus
+        ? registerLoginCheckMessages[registerLoginCheckStatus]
+        : ''
+
+    const registerLoginCheckColor = registerLoginCheckStatus
+        ? registerLoginCheckColors[registerLoginCheckStatus]
+        : undefined
 
     return (
         <SPage $theme={appTheme}>
@@ -182,6 +247,18 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     }
                 />
 
+                {registerLoginCheckMessage && (
+                    <div
+                        style={{
+                            color: registerLoginCheckColor,
+                            fontSize: 13,
+                            marginTop: 6,
+                        }}
+                    >
+                        {registerLoginCheckMessage}
+                    </div>
+                )}
+
                 <Input.Password
                     style={{
                         marginTop: 12,
@@ -217,6 +294,7 @@ export const MainPage = reatomComponent(({ ctx }) => {
                     style={{
                         marginTop: 20,
                     }}
+                    disabled={registerLoginCheckStatus === 'isBusy'}
                     onClick={async () => {
                         try {
                             registerAsync.errorAtom.reset(ctx)

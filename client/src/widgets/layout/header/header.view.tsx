@@ -17,14 +17,9 @@ import { userAtom } from '$entities/auth.ts'
 import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { logoutAsync } from './header.model'
+import { logoutAsync } from './header.reatom'
+import type { HeaderProps } from './header.types.ts'
 import { SHeader, SHeaderActions, SLogo } from './styles'
-
-type HeaderProps = {
-    profilePath?: string
-    showProfileLink?: boolean
-    variant?: 'dark' | 'light'
-}
 
 export const Header = reatomComponent<HeaderProps>(
     ({

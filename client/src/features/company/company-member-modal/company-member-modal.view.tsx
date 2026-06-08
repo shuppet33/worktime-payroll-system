@@ -1,19 +1,35 @@
 import { Modal } from 'antd'
 
-import type { CompanyMember } from '$shared/companies/companies.ts'
+import { reatomComponent } from '@reatom/npm-react'
 
-type Props = {
-    member?: CompanyMember
-    open: boolean
-    onClose: () => void
-}
+import { membersResource } from '$features/company/company.service.ts'
 
-export const CompanyMemberModal = ({ member, open, onClose }: Props) => {
+import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
+
+import {
+    memberModalOpenAtom,
+    selectedMemberIdAtom,
+} from './company-member-modal.reatom.ts'
+
+export const CompanyMemberModal = reatomComponent(({ ctx }) => {
+    const open = ctx.spy(memberModalOpenAtom)
+    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
+    const selectedMemberId = ctx.spy(selectedMemberIdAtom)
+    const membersData = ctx.spy(membersResource.dataAtom)
+    const members =
+        membersData.companyId === selectedCompanyId ? membersData.members : []
+    const member = members.find((member) => member.id === selectedMemberId)
+
     return (
-        <Modal open={open} onCancel={onClose} footer={null} title="Сотрудник">
+        <Modal
+            open={open}
+            footer={null}
+            title="Сотрудник"
+            onCancel={() => memberModalOpenAtom(ctx, false)}
+        >
             <p>{member?.login}</p>
 
             <p>{member?.role}</p>
         </Modal>
     )
-}
+})

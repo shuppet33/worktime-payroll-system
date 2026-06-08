@@ -1,7 +1,6 @@
 import { Button } from 'antd';
 
-import type { PaymentType, WorkDay } from '$entities/work-day';
-
+import type { EmployeeDetailsCardProps } from './employee-details-card.types.ts';
 import {
     SCardHeader,
     SDescriptionCard,
@@ -12,19 +11,12 @@ import {
     SHoursBadge,
 } from './styles';
 
-type Props = {
-    selectedDay: number;
-    paymentType: PaymentType;
-
-    dayData?: WorkDay;
-}
-
 export const EmployeeDetailsCard =
     ({
         selectedDay,
         paymentType,
         dayData,
-    }: Props) => {
+    }: EmployeeDetailsCardProps) => {
         const worked =
             dayData?.worked ?? true;
 
