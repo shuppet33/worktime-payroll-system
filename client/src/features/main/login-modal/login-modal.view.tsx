@@ -4,7 +4,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons'
 import { reatomComponent } from '@reatom/npm-react'
 
 import type { ChangeEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import {
     loginAsync,
@@ -15,6 +15,7 @@ import {
 
 export const LoginModal = reatomComponent(({ ctx }) => {
     const navigate = useNavigate()
+    const location = useLocation()
     const isOpen = ctx.spy(loginModalOpenAtom)
     const login = ctx.spy(loginAtom)
     const password = ctx.spy(passwordAtom)
@@ -43,7 +44,10 @@ export const LoginModal = reatomComponent(({ ctx }) => {
             loginAtom(ctx, '')
             passwordAtom(ctx, '')
             loginModalOpenAtom(ctx, false)
-            navigate('/account')
+
+            if (!location.pathname.startsWith('/invite/')) {
+                navigate('/account')
+            }
         } catch (error) {
             console.error(error)
         }

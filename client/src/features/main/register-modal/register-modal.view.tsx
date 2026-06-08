@@ -1,20 +1,27 @@
 import { Alert, Button, Input, Modal } from 'antd'
-import { LockOutlined, UserOutlined } from '@ant-design/icons'
+import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
 import type { ChangeEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import {
+    REGISTER_EMAIL_CODE_CHECK_COLORS,
+    REGISTER_EMAIL_CODE_CHECK_MESSAGES,
+    REGISTER_EMAIL_CODE_LENGTH,
     REGISTER_LOGIN_CHECK_COLORS,
     REGISTER_LOGIN_CHECK_MESSAGES,
 } from '$features/main/register-modal/register-modal.constants.ts'
 
 import {
+    checkRegisterEmailCodeAction,
     checkRegisterLoginAction,
     registerAsync,
     registerConfirmPasswordAtom,
+    registerEmailAtom,
+    registerEmailCodeAtom,
+    registerEmailCodeCheckStatusAtom,
     registerLoginAtom,
     registerLoginCheckStatusAtom,
     registerModalOpenAtom,
@@ -23,7 +30,10 @@ import {
 
 export const RegisterModal = reatomComponent(({ ctx }) => {
     const navigate = useNavigate()
+    const location = useLocation()
     const isOpen = ctx.spy(registerModalOpenAtom)
+    const email = ctx.spy(registerEmailAtom)
+    const emailCode = ctx.spy(registerEmailCodeAtom)
     const login = ctx.spy(registerLoginAtom)
     const password = ctx.spy(registerPasswordAtom)
     const confirmPassword = ctx.spy(registerConfirmPasswordAtom)
@@ -33,6 +43,7 @@ export const RegisterModal = reatomComponent(({ ctx }) => {
     const error = ctx.spy(registerAsync.errorAtom)
 
     const loginCheckStatus = ctx.spy(registerLoginCheckStatusAtom)
+    const emailCodeCheckStatus = ctx.spy(registerEmailCodeCheckStatusAtom)
 
     const loginCheck = {
         color: loginCheckStatus
@@ -44,9 +55,34 @@ export const RegisterModal = reatomComponent(({ ctx }) => {
             : '',
     }
 
+    const emailCodeCheck = {
+        color: emailCodeCheckStatus
+            ? REGISTER_EMAIL_CODE_CHECK_COLORS[emailCodeCheckStatus]
+            : undefined,
+        isInvalid: emailCodeCheckStatus === 'isInvalid',
+        isLoading: emailCodeCheckStatus === 'isLoading',
+        message: emailCodeCheckStatus
+            ? REGISTER_EMAIL_CODE_CHECK_MESSAGES[emailCodeCheckStatus]
+            : '',
+    }
+
     const handleClose = () => {
         registerAsync.errorAtom.reset(ctx)
         registerModalOpenAtom(ctx, false)
+    }
+
+    const handleChangeEmail = (event: ChangeEvent<HTMLInputElement>) => {
+        registerEmailAtom(ctx, event.target.value.trim())
+        registerEmailCodeCheckStatusAtom(ctx, null)
+    }
+
+    const handleChangeEmailCode = (event: ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value
+            .trim()
+            .slice(0, REGISTER_EMAIL_CODE_LENGTH)
+
+        registerEmailCodeAtom(ctx, value)
+        checkRegisterEmailCodeAction(ctx, value)
     }
 
     const handleChangeLogin = (event: ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +107,10 @@ export const RegisterModal = reatomComponent(({ ctx }) => {
             registerAsync.errorAtom.reset(ctx)
             await registerAsync(ctx)
             registerModalOpenAtom(ctx, false)
-            navigate('/account')
+
+            if (!location.pathname.startsWith('/invite/')) {
+                navigate('/account')
+            }
         } catch (error) {
             console.error(error)
         }
@@ -79,18 +118,53 @@ export const RegisterModal = reatomComponent(({ ctx }) => {
 
     return (
         <Modal
-            title="Регистрация"
-            open={isOpen}
             footer={null}
+            open={isOpen}
+            title="Регистрация"
             onCancel={handleClose}
         >
             {isRejected && error && <Alert type="error" title={error.message} />}
 
             <Input
+                prefix={<MailOutlined />}
+                placeholder="Email"
                 size="large"
-                placeholder="Логин"
-                value={login}
+                value={email}
+                onChange={handleChangeEmail}
+            />
+
+            <Input
+                maxLength={REGISTER_EMAIL_CODE_LENGTH}
+                prefix={<MailOutlined />}
+                placeholder="Код из email"
+                size="large"
+                style={{
+                    marginTop: 12,
+                }}
+                value={emailCode}
+                onChange={handleChangeEmailCode}
+            />
+
+            {emailCodeCheck.message && (
+                <div
+                    style={{
+                        color: emailCodeCheck.color,
+                        fontSize: 13,
+                        marginTop: 6,
+                    }}
+                >
+                    {emailCodeCheck.message}
+                </div>
+            )}
+
+            <Input
                 prefix={<UserOutlined />}
+                placeholder="Логин"
+                size="large"
+                style={{
+                    marginTop: 12,
+                }}
+                value={login}
                 onChange={handleChangeLogin}
             />
 
@@ -107,37 +181,41 @@ export const RegisterModal = reatomComponent(({ ctx }) => {
             )}
 
             <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Пароль"
+                size="large"
                 style={{
                     marginTop: 12,
                 }}
-                size="large"
-                placeholder="Пароль"
-                prefix={<LockOutlined />}
                 value={password}
                 onChange={handleChangePassword}
             />
 
             <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="Повторите пароль"
+                size="large"
                 style={{
                     marginTop: 12,
                 }}
-                size="large"
-                placeholder="Повторите пароль"
-                prefix={<LockOutlined />}
                 value={confirmPassword}
                 onChange={handleChangeConfirmPassword}
             />
 
             <Button
-                loading={isLoading}
-                type="primary"
-                htmlType="submit"
                 block
+                disabled={
+                    loginCheck.isBusy ||
+                    emailCodeCheck.isInvalid ||
+                    emailCodeCheck.isLoading
+                }
+                htmlType="submit"
+                loading={isLoading}
                 size="large"
                 style={{
                     marginTop: 20,
                 }}
-                disabled={loginCheck.isBusy}
+                type="primary"
                 onClick={handleSubmit}
             >
                 Зарегистрироваться

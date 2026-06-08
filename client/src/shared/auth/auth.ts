@@ -6,6 +6,8 @@ import type {
     Login,
     LoginPayload,
     RegisterPayload,
+    VerifyEmailCodePayload,
+    VerifyEmailCodeResponse,
 } from './auth.types.ts'
 
 export const checkLoginRequest = async (
@@ -13,7 +15,7 @@ export const checkLoginRequest = async (
     signal?: AbortSignal,
 ): Promise<CheckLoginResponse> => {
     const response = await fetch(
-        `${API_URL}/users/check-login?q=${encodeURIComponent(q)}`,
+        `${API_URL}/auth/check-login?q=${encodeURIComponent(q)}`,
         {
             signal,
         },
@@ -48,6 +50,30 @@ export const registerRequest = async (
     }
 
     return data
+}
+
+export const verifyEmailCodeRequest = async (
+    payload: VerifyEmailCodePayload,
+): Promise<VerifyEmailCodeResponse> => {
+    const response = await fetch(`${API_URL}/auth/check-email-code`, {
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify(payload),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(data.message ?? 'Не удалось проверить код из email')
+    }
+
+    return {
+        isValid: data.isValid ?? data.valid,
+    }
 }
 
 export const loginRequest = async (payload: LoginPayload): Promise<Login> => {

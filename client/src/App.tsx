@@ -6,6 +6,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router'
 
 import { AccountPage } from '$pages/account'
 import { CompanyPage } from '$pages/company'
+import { InvitationsPage } from '$pages/invitation'
 import { MainPage } from '$pages/main'
 
 import { meResource, tokenAtom, userAtom } from '$entities/auth.ts'
@@ -52,6 +53,7 @@ const App = reatomComponent(({ ctx }) => {
         >
             <Routes>
                 <Route path="/" element={<MainPage />} />
+                <Route path="/invite/:token" element={<InvitationsPage />} />
 
                 <Route element={<PrivateRoutes />}>
                     <Route path="/account" element={<AccountPage />} />

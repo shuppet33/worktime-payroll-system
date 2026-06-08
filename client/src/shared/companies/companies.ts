@@ -118,3 +118,28 @@ export const getCompanyMembersRequest = async (
 
     return data
 }
+
+export const deleteCompanyMembersRequest = async (
+    token: string,
+    memberId: string,
+    companyId: string,
+): Promise<{ companyId: string }> => {
+    const response = await fetch(
+        `${API_URL}/companies/${companyId}/members/${memberId}`,
+        {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+        },
+    )
+
+    const data = await response.json().catch(() => null)
+
+    if (!response.ok) {
+        throw new Error(data?.message ?? 'Не удалось удалить сотрудника ')
+    }
+
+    return data
+}

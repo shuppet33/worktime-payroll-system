@@ -8,8 +8,10 @@ import {
 } from '@reatom/framework'
 
 import { tokenAtom, userAtom } from '$entities/auth.ts'
+import { companyMembersAtom } from '$entities/company.ts'
 
 import {
+    deleteCompanyMembersRequest,
     deleteCompanyRequest,
     getCompanyMembersRequest,
     updateCompanyRequest,
@@ -23,6 +25,7 @@ import {
 } from './company-invite-modal/company-invite-modal.reatom.ts'
 import { getFilteredInviteUsers } from './company-invite-modal/company-invite-modal.utils.ts'
 import {
+    closeDeleteMemberModalAction,
     deleteMemberModalOpenAtom,
     selectedMemberForDeleteIdAtom,
 } from './company-member-modal/company-member-modal.reatom.ts'
@@ -57,6 +60,8 @@ export const membersResource = reatomResource<CompanyMembersData>(
         }
 
         const members = await getCompanyMembersRequest(token, companyId)
+
+        companyMembersAtom(ctx, members)
 
         return {
             companyId,
@@ -170,6 +175,40 @@ export const deleteAsync = reatomAsync((ctx, companyId: string) => {
         deleteMemberModalOpenAtom(ctx, false)
         deleteCompanyModalOpenAtom(ctx, false)
         settingsModalOpenAtom(ctx, false)
+
+        return result
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
+
+export const deleteMemberAsync = reatomAsync((ctx, companyId: string) => {
+    return ctx.schedule(async () => {
+        const token = ctx.get(tokenAtom)
+        const memberId = ctx.get(selectedMemberForDeleteIdAtom)
+
+        if (!token) {
+            throw new Error('Ошибка авторизации')
+        }
+
+        if (!memberId) {
+            throw new Error('Сотрудник не выбран')
+        }
+
+        const result = await deleteCompanyMembersRequest(
+            token,
+            memberId,
+            companyId,
+        )
+
+        const members = await getCompanyMembersRequest(token, companyId)
+
+        companyMembersAtom(ctx, members)
+
+        membersResource.dataAtom(ctx, {
+            companyId,
+            members,
+        })
+
+        closeDeleteMemberModalAction(ctx)
 
         return result
     })

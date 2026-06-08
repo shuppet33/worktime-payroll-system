@@ -8,15 +8,19 @@ import {
 
 import { meRequest } from '$shared/auth/auth.ts'
 
+export type UserRole = 'ACCOUNTANT' | 'EMPLOYEE' | 'OWNER'
+
+export type UserCompany = {
+    id: string
+    role: UserRole
+    company_id: string
+    company_name: string
+}
+
 export type User = {
     id: string
     login: string
-    companies?: {
-        id: string
-        role: string
-        company_id: string
-        company_name: string
-    }[]
+    companies?: UserCompany[]
 }
 
 export const tokenAtom = atom<string | null>(null)

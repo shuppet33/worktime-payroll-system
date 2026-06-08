@@ -1,4 +1,9 @@
-import { atom, reatomAsync, withErrorAtom, withStatusesAtom } from '@reatom/framework'
+import {
+    atom,
+    reatomAsync,
+    withErrorAtom,
+    withStatusesAtom,
+} from '@reatom/framework'
 
 import { tokenAtom, userAtom } from '$entities/auth.ts'
 
