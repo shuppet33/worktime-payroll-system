@@ -43,4 +43,4 @@ companiesRouter.get(
     authMiddleware,
     companyController.searchUsersForInvite,
 )
-companiesRouter.delete('/companies/:companyId',authMiddleware,companyController.deleteMember)
+companiesRouter.delete('/:companyId/members/:memberId', authMiddleware,companyController.deleteMember)
