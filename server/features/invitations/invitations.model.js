@@ -7,64 +7,56 @@ export const invitationModel = {
                 SELECT
                     i.id,
                     i.token,
-                    i.company_id as "companyId",
-                    i.user_id as "userId",
-                    c.name as "companyName",
+                    i.company_id AS "companyId",
+                    c.name AS "companyName",
                     i.role,
                     i.status,
-                    i.expires_at as "expiresAt"
+                    i.expires_at AS "expiresAt"
                 FROM invitations i
-                JOIN companies c ON c.id = i.company_id
+                         JOIN companies c
+                              ON c.id = i.company_id
                 WHERE i.token = $1
             `,
             [token],
         )
 
-        const invitation = rows[0]
+        return rows[0] || null
+    },
 
-        if (!invitation) {
-            return null
-        }
+    async updateStatus(id, status) {
+        const { rows } = await connectDB.query(
+            `
+            UPDATE invitations
+            SET status = $2
+            WHERE id = $1
+            RETURNING *
+        `,
+            [id, status],
+        )
 
-        if (
-            invitation.status === 'PENDING' &&
-            new Date(invitation.expiresAt).getTime() <= Date.now()
-        ) {
-            await connectDB.query(
-                `
-                    UPDATE invitations
-                    SET status = 'EXPIRED'
-                    WHERE id = $1
-                      AND status = 'PENDING'
-                `,
-                [invitation.id],
-            )
-
-            return {
-                ...invitation,
-                status: 'EXPIRED',
-            }
-        }
-
-        return invitation
+        return rows[0] || null
     },
 
     async acceptByToken({ companyMemberId, token, userId }) {
+        const client = await connectDB.connect()
+
         try {
-            const { rows: invitationRows } = await connectDB.query(
+            await client.query('BEGIN')
+
+            const { rows: invitationRows } = await client.query(
                 `
                     SELECT
                         i.id,
-                        i.company_id as "companyId",
-                        i.user_id as "userId",
-                        c.name as "companyName",
+                        i.company_id AS "companyId",
+                        c.name AS "companyName",
                         i.role,
                         i.status,
-                        i.expires_at as "expiresAt"
+                        i.expires_at AS "expiresAt"
                     FROM invitations i
-                    JOIN companies c ON c.id = i.company_id
+                             JOIN companies c
+                                  ON c.id = i.company_id
                     WHERE i.token = $1
-                    FOR UPDATE OF i
+                        FOR UPDATE OF i
                 `,
                 [token],
             )
@@ -72,32 +64,31 @@ export const invitationModel = {
             const invitation = invitationRows[0]
 
             if (!invitation) {
+                await client.query('ROLLBACK')
                 return { error: 'NOT_FOUND' }
             }
 
             if (invitation.status !== 'PENDING') {
+                await client.query('ROLLBACK')
                 return { error: invitation.status }
             }
 
             if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-                await connectDB.query(
+                await client.query(
                     `
                     UPDATE invitations
                     SET status = 'EXPIRED'
                     WHERE id = $1
-                      AND status = 'PENDING'
-                    `,
+                `,
                     [invitation.id],
                 )
+
+                await client.query('COMMIT')
 
                 return { error: 'EXPIRED' }
             }
 
-            if (invitation.userId && invitation.userId !== userId) {
-                return { error: 'FORBIDDEN_USER' }
-            }
-
-            const { rows: memberRows } = await connectDB.query(
+            const { rows: memberRows } = await client.query(
                 `
                     SELECT id
                     FROM company_members
@@ -108,15 +99,16 @@ export const invitationModel = {
             )
 
             if (memberRows[0]) {
+                await client.query('ROLLBACK')
                 return { error: 'ALREADY_MEMBER' }
             }
 
-            const { rows: createdMemberRows } = await connectDB.query(
+            const { rows: createdMemberRows } = await client.query(
                 `
                     INSERT INTO company_members
-                    ( id, company_id, user_id, role )
+                        ( id, company_id, user_id, role )
                     VALUES ( $1, $2, $3, $4 )
-                    RETURNING id, role
+                        RETURNING id, role
                 `,
                 [
                     companyMemberId,
@@ -129,98 +121,90 @@ export const invitationModel = {
             await connectDB.query(
                 `
                     UPDATE invitations
-                    SET
-                        status = 'ACCEPTED',
-                        is_used = true
+                    SET status = 'ACCEPTED'
                     WHERE id = $1
                 `,
                 [invitation.id],
             )
 
+            await client.query('COMMIT')
+
             return {
-                company: {
-                    id: invitation.companyId,
-                    name: invitation.companyName,
-                },
+                companyId: invitation.companyId,
                 member: createdMemberRows[0],
             }
         } catch (error) {
+            await client.query('ROLLBACK')
             throw error
+        } finally {
+            client.release()
         }
     },
 
-    async hasActiveInvite(companyId, userId) {
+    async declineByToken(token) {
         const { rows } = await connectDB.query(
             `
-        SELECT 1
-        FROM invitations
-        WHERE company_id = $1
-          AND user_id = $2
-          AND status = 'PENDING'
-          AND expires_at > NOW()
+            UPDATE invitations
+            SET status = 'DECLINED'
+            WHERE token = $1
+              AND status = 'PENDING'
+            RETURNING id, status
+        `,
+            [token],
+        )
+
+        return rows[0] || null
+    },
+
+    async revokeById(id) {
+        const { rows } = await connectDB.query(
+            `
+            UPDATE invitations
+            SET status = 'REVOKED'
+            WHERE id = $1
+              AND status = 'PENDING'
+            RETURNING id, status
+        `,
+            [id],
+        )
+
+        return rows[0] || null
+    },
+
+    async getById(id) {
+        const { rows } = await connectDB.query(
+            `
+            SELECT
+                i.id,
+                i.token,
+                i.company_id AS "companyId",
+                c.name AS "companyName",
+                i.role,
+                i.status,
+                i.expires_at AS "expiresAt"
+            FROM invitations i
+            JOIN companies c
+                ON c.id = i.company_id
+            WHERE i.id = $1
+        `,
+            [id],
+        )
+
+        return rows[0] || null
+    },
+
+    async canRevoke({ companyId, userId }) {
+        const { rows } = await connectDB.query(
+            `
+            SELECT id
+            FROM company_members
+            WHERE company_id = $1
+              AND user_id = $2
+              AND role IN ('OWNER', 'ACCOUNTANT')
         `,
             [companyId, userId],
         )
 
-        return rows.length > 0
-    },
-
-    async declineByToken({ token }) {
-        const { rows } = await connectDB.query(
-            `
-                SELECT
-                    id,
-                    status,
-                    expires_at as "expiresAt"
-                FROM invitations
-                WHERE token = $1
-                FOR UPDATE
-            `,
-            [token],
-        )
-
-        const invitation = rows[0]
-
-        if (!invitation) {
-            throw new Error('Приглашение не найдено')
-        }
-
-        if (invitation.status !== 'PENDING') {
-            return { error: invitation.status }
-        }
-
-        if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-            await connectDB.query(
-                `
-                    UPDATE invitations
-                    SET status = 'EXPIRED'
-                    WHERE id = $1
-                      AND status = 'PENDING'
-                `,
-                [invitation.id],
-            )
-
-            return { error: 'EXPIRED' }
-        }
-
-        const { rows: updatedRows } = await connectDB.query(
-            `
-                UPDATE invitations
-                SET status = 'DECLINED'
-                WHERE id = $1
-                RETURNING
-                    id,
-                    company_id as "companyId",
-                    user_id as "userId",
-                    role,
-                    status,
-                    expires_at as "expiresAt"
-            `,
-            [invitation.id],
-        )
-
-        return {
-            invitation: updatedRows[0],
-        }
+        return Boolean(rows[0])
     },
 }

@@ -20,3 +20,15 @@ invitationsRouter.get(
     '/:token',
     invitationController.getByToken,
 )
+
+invitationsRouter.post(
+    '/:token/decline',
+    authMiddleware,
+    invitationController.decline,
+)
+
+invitationsRouter.post(
+    '/:id/revoke',
+    authMiddleware,
+    invitationController.revoke,
+)
