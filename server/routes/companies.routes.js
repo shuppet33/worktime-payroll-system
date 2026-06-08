@@ -14,7 +14,13 @@ companiesRouter.patch('/:companyId', authMiddleware, companyController.update)
 
 companiesRouter.delete('/:companyId', authMiddleware, companyController.delete)
 
-companiesRouter.get(
+companiesRouter.post(
+    '/:companyId/invitations',
+    authMiddleware,
+    companyController.createInvitation,
+)
+
+companiesRouter.post(
     '/:companyId/members',
     authMiddleware,
     companyController.getMembers,

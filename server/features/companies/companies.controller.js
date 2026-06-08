@@ -293,5 +293,77 @@ export const companyController = {
                 message: 'Ошибка удаления участника',
             })
         }
-    }
+    },
+
+    async createInvitation(req, res) {
+        try {
+            const { companyId } = req.params
+            const { role } = req.body
+
+            const allowedCreatorRoles = ['OWNER', 'ACCOUNTANT']
+            const allowedInvitationRoles = ['EMPLOYEE', 'ACCOUNTANT']
+
+            if (!companyId) {
+                return res.status(400).json({
+                    message: 'companyId обязателен',
+                })
+            }
+
+            if (!role) {
+                return res.status(400).json({
+                    message: 'поле role обязательно',
+                })
+            }
+
+            if (!allowedInvitationRoles.includes(role)) {
+                return res.status(400).json({
+                    message: 'role должен быть EMPLOYEE или ACCOUNTANT',
+                })
+            }
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            if (!allowedCreatorRoles.includes(company.role)) {
+                return res.status(403).json({
+                    message: 'Недостаточно прав',
+                })
+            }
+
+            const invitationId = nanoid(8)
+            const token = nanoid(32)
+            const expiresAt = new Date()
+            expiresAt.setDate(expiresAt.getDate() + 7)
+
+
+            const invitation = await companyModel.createInvitation({
+                id: invitationId,
+                token,
+                companyId,
+                role,
+                createdBy: req.user.id,
+                expiresAt,
+            })
+
+
+            return res.status(201).json({
+                ...invitation,
+                inviteLink: `/invite/${invitation.token}`,
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка создания приглашения',
+            })
+        }
+    },
 }

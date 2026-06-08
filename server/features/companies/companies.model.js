@@ -180,6 +180,7 @@ export const companyModel = {
 
         return rows[0] || null
     },
+
     async getMemberById({ companyId, memberId }) {
         const { rows } = await connectDB.query(
             `
@@ -194,5 +195,24 @@ export const companyModel = {
         )
 
         return rows[0] || null
+    },
+
+    async createInvitation({ id, token, companyId, role, createdBy, expiresAt }) {
+        const { rows } = await connectDB.query(
+            `
+                INSERT INTO invitations
+                ( id, token, company_id, role, created_by, expires_at )
+                VALUES ( $1, $2, $3, $4, $5, $6 )
+                RETURNING
+                    id,
+                    token,
+                    company_id as "companyId",
+                    role,
+                    expires_at as "expiresAt"
+            `,
+            [id, token, companyId, role, createdBy, expiresAt],
+        )
+
+        return rows[0]
     },
 }
