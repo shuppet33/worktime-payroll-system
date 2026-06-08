@@ -1,8 +1,9 @@
 import { Avatar, Checkbox, Select } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 
-import { ROLE_OPTIONS } from './access-section.constants.ts'
-import type { InvitedUserRowProps } from './access-section.types.ts'
+import { ROLE_OPTIONS } from '../access-section.constants.ts'
+import type { InvitedUserRowProps } from '../access-section.types.ts'
+
 import {
     SDeleteInviteButton,
     SInvitedUserInfo,
@@ -10,7 +11,7 @@ import {
     SInvitedUserRole,
     SInvitedUserRow,
     SRoleSelectWrapper,
-} from './styles'
+} from './styles.ts'
 
 export const InvitedUserRow = ({
     isSelected,

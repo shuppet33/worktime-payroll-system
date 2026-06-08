@@ -8,7 +8,10 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { Footer } from '$widgets/layout/footer'
 import { Header } from '$widgets/layout/header'
 
-import { deleteAsync, membersResource } from '$features/company/company.service.ts'
+import {
+    deleteAsync,
+    membersResource,
+} from '$features/company/company.service.ts'
 import { CompanyInviteModal } from '$features/company/company-invite-modal'
 import { CompanyMemberModal } from '$features/company/company-member-modal'
 import {
@@ -80,10 +83,9 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
     }
 
     const membersData = ctx.spy(membersResource.dataAtom)
-    const {
-        isPending: membersLoading,
-        isRejected: membersRejected,
-    } = ctx.spy(membersResource.statusesAtom)
+    const { isPending: membersLoading, isRejected: membersRejected } = ctx.spy(
+        membersResource.statusesAtom,
+    )
     const membersError = ctx.spy(membersResource.errorAtom)
 
     const members =
@@ -99,32 +101,9 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
         deleteAsync.statusesAtom,
     )
     const deleteError = ctx.spy(deleteAsync.errorAtom)
+
     const deleteMemberMessage = `Точно вы хотите удалить сотрудника "${selectedMemberForDelete?.login ?? ''}" из компании "${selectedCompany.company_name}"?`
     const deleteCompanyMessage = `Точно вы хотите удалить компанию "${selectedCompany.company_name}"?`
-
-    const handleOpenSettings = () => {
-        deleteAsync.errorAtom.reset(ctx)
-        openSettingsModalAction(ctx, selectedCompany.company_name)
-    }
-
-    const handleOpenDeleteMember = (memberId: string) => {
-        deleteAsync.errorAtom.reset(ctx)
-        openDeleteMemberModalAction(ctx, memberId)
-    }
-
-    const handleSelectMember = (memberId: string) => {
-        selectMemberAction(ctx, memberId)
-    }
-
-    const handleCancelDeleteMember = () => {
-        deleteAsync.errorAtom.reset(ctx)
-        closeDeleteMemberModalAction(ctx)
-    }
-
-    const handleCancelDeleteCompany = () => {
-        deleteAsync.errorAtom.reset(ctx)
-        deleteCompanyModalOpenAtom(ctx, false)
-    }
 
     const handleConfirmDeleteCompany = async () => {
         try {
@@ -165,7 +144,13 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                             <Button
                                 aria-label="Настройки компании"
                                 icon={<SettingOutlined />}
-                                onClick={handleOpenSettings}
+                                onClick={() => {
+                                    deleteAsync.errorAtom.reset(ctx)
+                                    openSettingsModalAction(
+                                        ctx,
+                                        selectedCompany.company_name,
+                                    )
+                                }}
                             />
                         )}
                     </SFilterActions>
@@ -181,8 +166,11 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                     loading={membersLoading}
                     members={members}
                     showError={membersRejected}
-                    onDelete={handleOpenDeleteMember}
-                    onSelect={handleSelectMember}
+                    onDelete={(memberId) => {
+                        deleteAsync.errorAtom.reset(ctx)
+                        openDeleteMemberModalAction(ctx, memberId)
+                    }}
+                    onSelect={(memberId) => selectMemberAction(ctx, memberId)}
                 />
 
                 <CompanyMemberModal />
@@ -196,7 +184,10 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                     error={deleteRejected ? deleteError : undefined}
                     message={deleteMemberMessage}
                     onConfirm={() => closeDeleteMemberModalAction(ctx)}
-                    onCancel={handleCancelDeleteMember}
+                    onCancel={() => {
+                        deleteAsync.errorAtom.reset(ctx)
+                        closeDeleteMemberModalAction(ctx)
+                    }}
                 />
 
                 <ConfirmModal
@@ -206,7 +197,10 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
                     error={deleteRejected ? deleteError : undefined}
                     message={deleteCompanyMessage}
                     onConfirm={handleConfirmDeleteCompany}
-                    onCancel={handleCancelDeleteCompany}
+                    onCancel={() => {
+                        deleteAsync.errorAtom.reset(ctx)
+                        deleteCompanyModalOpenAtom(ctx, false)
+                    }}
                 />
             </SCompanyContent>
 

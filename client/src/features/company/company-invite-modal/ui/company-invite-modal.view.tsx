@@ -17,14 +17,15 @@ import {
     MODAL_WIDTH,
     RESULTS_HEIGHT,
     USER_ROW_HEIGHT,
-} from './company-invite-modal.constants.ts'
+} from '../company-invite-modal.constants.ts'
 import {
     closeInviteMemberModalAction,
     inviteMemberModalOpenAtom,
     inviteMemberSearchAtom,
     selectedInviteUserIdAtom,
-} from './company-invite-modal.reatom.ts'
-import type { InviteUser } from './company-invite-modal.types.ts'
+} from '../company-invite-modal.reatom.ts'
+import type { InviteUser } from '../company-invite-modal.types.ts'
+
 import { CompanyInviteModalResult } from './company-invite-modal-result.view.tsx'
 import { SelectedInviteUser } from './selected-invite-user.view.tsx'
 import {
@@ -35,7 +36,7 @@ import {
     SSearchInputWrapper,
     SSearchLabel,
     SStatusText,
-} from './styles'
+} from './styles.ts'
 
 export const CompanyInviteModal = reatomComponent(({ ctx }) => {
     const user = ctx.spy(userAtom)

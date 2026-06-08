@@ -10,15 +10,16 @@ import {
 
 import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 
-import { AccessSection } from './access-section.view.tsx'
 import {
     closeSettingsModalAction,
     companyNameDraftAtom,
     companyNameEditingAtom,
     deleteCompanyModalOpenAtom,
     settingsModalOpenAtom,
-} from './company-settings-modal.reatom.ts'
-import { SCompanyNameEditor, SModalContent } from './styles'
+} from '../company-settings-modal.reatom.ts'
+
+import { AccessSection } from './access-section.view.tsx'
+import { SCompanyNameEditor, SModalContent } from './styles.ts'
 
 export const CompanySettingsModal = reatomComponent(({ ctx }) => {
     const companyId = ctx.spy(selectedCompanyIdAtom)

@@ -1,1 +1,1 @@
-export { CompanyInviteModal } from './company-invite-modal.view'
+export { CompanyInviteModal } from './ui/company-invite-modal.view.tsx'

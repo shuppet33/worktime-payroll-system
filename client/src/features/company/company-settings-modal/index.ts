@@ -1,1 +1,1 @@
-export { CompanySettingsModal } from './company-settings-modal.view.tsx'
+export { CompanySettingsModal } from './ui/company-settings-modal.view.tsx'

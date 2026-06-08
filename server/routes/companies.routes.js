@@ -20,7 +20,7 @@ companiesRouter.post(
     companyController.createInvitation,
 )
 
-companiesRouter.post(
+companiesRouter.get(
     '/:companyId/members',
     authMiddleware,
     companyController.getMembers,

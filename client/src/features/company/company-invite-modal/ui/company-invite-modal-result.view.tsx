@@ -2,16 +2,17 @@ import { reatomComponent } from '@reatom/npm-react'
 
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { selectedInviteUserIdAtom } from './company-invite-modal.reatom.ts'
-import type { CompanyInviteModalResultProps } from './company-invite-modal.types.ts'
-import { getInviteUserInitials } from './company-invite-modal.utils.ts'
+import { selectedInviteUserIdAtom } from '../company-invite-modal.reatom.ts'
+import type { CompanyInviteModalResultProps } from '../company-invite-modal.types.ts'
+import { getInviteUserInitials } from '../company-invite-modal.utils.ts'
+
 import {
     SResultButton,
     SUserAvatar,
     SUserInfo,
     SUserMeta,
     SUserName,
-} from './styles'
+} from './styles.ts'
 
 export const CompanyInviteModalResult = reatomComponent<CompanyInviteModalResultProps>(
     ({ ctx, user }) => {

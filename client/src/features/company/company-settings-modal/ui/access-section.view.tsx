@@ -1,4 +1,4 @@
-import { type ChangeEvent,useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button, Checkbox, Input } from 'antd'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons'
@@ -9,9 +9,10 @@ import { openInviteMemberModalAction } from '$features/company/company-invite-mo
 
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { MOCK_INVITED_USERS } from './access-section.constants.ts'
-import type { InvitedUserRole } from './access-section.types.ts'
-import { getFilteredInvitedUsers } from './access-section.utils.ts'
+import { MOCK_INVITED_USERS } from '../access-section.constants.ts'
+import type { InvitedUserRole } from '../access-section.types.ts'
+import { getFilteredInvitedUsers } from '../access-section.utils.ts'
+
 import { InvitedUserRow } from './invited-user-row.view.tsx'
 import {
     SAccessHeader,
@@ -22,7 +23,7 @@ import {
     SEmptyAccessText,
     SInvitedList,
     SSelectAll,
-} from './styles'
+} from './styles.ts'
 
 export const AccessSection = reatomComponent(({ ctx }) => {
     const theme = ctx.spy(appThemeAtom)
@@ -43,14 +44,6 @@ export const AccessSection = reatomComponent(({ ctx }) => {
     const isAllFilteredSelected =
         hasFilteredUsers &&
         filteredIds.every((id) => selectedInviteIds.includes(id))
-
-    const handleOpenInviteModal = () => {
-        openInviteMemberModalAction(ctx)
-    }
-
-    const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) => {
-        setAccessSearch(event.target.value)
-    }
 
     const handleSelectAll = (event: { target: { checked: boolean } }) => {
         if (!event.target.checked) {
@@ -97,7 +90,7 @@ export const AccessSection = reatomComponent(({ ctx }) => {
                 <Button
                     icon={<UserAddOutlined />}
                     type="primary"
-                    onClick={handleOpenInviteModal}
+                    onClick={() => openInviteMemberModalAction(ctx)}
                 >
                     Пригласить
                 </Button>
@@ -123,7 +116,9 @@ export const AccessSection = reatomComponent(({ ctx }) => {
                         placeholder="Find a collaborator..."
                         prefix={<SearchOutlined />}
                         value={accessSearch}
-                        onChange={handleChangeSearch}
+                        onChange={(event) =>
+                            setAccessSearch(event.target.value)
+                        }
                     />
                 </SAccessToolbar>
 

@@ -4,9 +4,10 @@ import { reatomComponent } from '@reatom/npm-react'
 
 import { appThemeAtom } from '$shared/theme.ts'
 
-import { selectedInviteUserIdAtom } from './company-invite-modal.reatom.ts'
-import type { SelectedInviteUserProps } from './company-invite-modal.types.ts'
-import { getInviteUserInitials } from './company-invite-modal.utils.ts'
+import { selectedInviteUserIdAtom } from '../company-invite-modal.reatom.ts'
+import type { SelectedInviteUserProps } from '../company-invite-modal.types.ts'
+import { getInviteUserInitials } from '../company-invite-modal.utils.ts'
+
 import {
     SClearSelectedButton,
     SSelectedUser,
@@ -14,7 +15,7 @@ import {
     SUserInfo,
     SUserMeta,
     SUserName,
-} from './styles'
+} from './styles.ts'
 
 export const SelectedInviteUser = reatomComponent<SelectedInviteUserProps>(({ ctx, user }) => {
     const theme = ctx.spy(appThemeAtom)
