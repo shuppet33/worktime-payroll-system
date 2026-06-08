@@ -20,6 +20,12 @@ companiesRouter.post(
     companyController.createInvitation,
 )
 
+companiesRouter.patch(
+    '/:companyId/invitations/:invitationId/revoke',
+    authMiddleware,
+    companyController.revokeInvitation,
+)
+
 companiesRouter.get(
     '/:companyId/members',
     authMiddleware,
@@ -31,3 +37,10 @@ companiesRouter.patch(
     authMiddleware,
     companyController.updateMemberRole,
 )
+
+companiesRouter.get(
+    '/:companyId/users/search',
+    authMiddleware,
+    companyController.searchUsersForInvite,
+)
+companiesRouter.delete('/companies/:companyId',authMiddleware,companyController.deleteMember)
