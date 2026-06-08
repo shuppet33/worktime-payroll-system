@@ -1,4 +1,6 @@
 import { companyModel } from './companies.model.js'
+import { invitationModel } from '../invitations/invitations.model.js'
+import { userModel } from '../auth/users.model.js'
 import { nanoid } from 'nanoid'
 
 export const companyController = {
@@ -298,7 +300,7 @@ export const companyController = {
     async createInvitation(req, res) {
         try {
             const { companyId } = req.params
-            const { role } = req.body
+            const { role, userId } = req.body
 
             const allowedCreatorRoles = ['OWNER', 'ACCOUNTANT']
             const allowedInvitationRoles = ['EMPLOYEE', 'ACCOUNTANT']
@@ -312,6 +314,12 @@ export const companyController = {
             if (!role) {
                 return res.status(400).json({
                     message: 'поле role обязательно',
+                })
+            }
+
+            if (!userId) {
+                return res.status(400).json({
+                    message: 'поле userId обязательно',
                 })
             }
 
@@ -338,21 +346,50 @@ export const companyController = {
                 })
             }
 
+            const invitedUser = await userModel.getById(userId)
+
+            if (!invitedUser) {
+                return res.status(404).json({
+                    message: 'Пользователь не найден',
+                })
+            }
+
+            const member = await companyModel.getMemberById({
+                companyId,
+                memberId: userId,
+            })
+
+            if (member) {
+                return res.status(409).json({
+                    message: 'Пользователь уже состоит в этой компании',
+                })
+            }
+
+            const hasActiveInvite = await invitationModel.hasActiveInvite(
+                companyId,
+                userId,
+            )
+
+            if (hasActiveInvite) {
+                return res.status(409).json({
+                    message: 'Пользователю уже отправлено активное приглашение',
+                })
+            }
+
             const invitationId = nanoid(8)
             const token = nanoid(32)
             const expiresAt = new Date()
             expiresAt.setDate(expiresAt.getDate() + 7)
 
-
             const invitation = await companyModel.createInvitation({
                 id: invitationId,
                 token,
                 companyId,
+                userId,
                 role,
                 createdBy: req.user.id,
                 expiresAt,
             })
-
 
             return res.status(201).json({
                 ...invitation,
@@ -366,4 +403,108 @@ export const companyController = {
             })
         }
     },
+
+    async searchUsersForInvite(req, res) {
+        try {
+            const { companyId } = req.params
+            const { q } = req.query
+
+            const normalizedQuery = typeof q === 'string' ? q.trim() : ''
+
+            if (!normalizedQuery) {
+                return res.status(400).json({
+                    message: 'q обязателен',
+                })
+            }
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            const result = await companyModel.searchUsersForInvite({
+                companyId,
+                query: normalizedQuery,
+            })
+
+            return res.json(result)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка поиска пользователей',
+            })
+        }
+    },
+
+    async revokeInvitation(req, res) {
+        try {
+            const { companyId, invitationId } = req.params
+            const allowedCreatorRoles = ['OWNER', 'ACCOUNTANT']
+
+            if (!invitationId) {
+                return res.status(400).json({
+                    message: 'invitationId обязателен',
+                })
+            }
+
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({
+                    message: 'Компания не найдена или нет доступа',
+                })
+            }
+
+            if (!allowedCreatorRoles.includes(company.role)) {
+                return res.status(403).json({
+                    message: 'Недостаточно прав',
+                })
+            }
+
+            const invitation = await companyModel.getInvitationById({
+                companyId,
+                invitationId,
+            })
+
+            if (!invitation) {
+                return res.status(404).json({
+                    message: 'Приглашение не найдено',
+                })
+            }
+
+            if (invitation.status !== 'PENDING') {
+                return res.status(409).json({
+                    message: 'Можно отозвать только активное приглашение',
+                    status: invitation.status,
+                })
+            }
+
+            const revokedInvitation = await companyModel.revokeInvitation({
+                companyId,
+                invitationId,
+            })
+
+            return res.status(200).json({
+                message: 'Приглашение отозвано',
+                invitation: revokedInvitation,
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка отзыва приглашения',
+            })
+        }
+    },
+
 }

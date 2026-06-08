@@ -20,9 +20,27 @@ export const invitationController = {
                 })
             }
 
-            if (invitation.isUsed) {
+            if (invitation.status === 'ACCEPTED') {
                 return res.status(400).json({
                     message: 'Приглашение уже использовано',
+                })
+            }
+
+            if (invitation.status === 'DECLINED') {
+                return res.status(400).json({
+                    message: 'Приглашение отклонено',
+                })
+            }
+
+            if (invitation.status === 'REVOKED') {
+                return res.status(400).json({
+                    message: 'Приглашение отозвано',
+                })
+            }
+
+            if (invitation.status === 'EXPIRED') {
+                return res.status(400).json({
+                    message: 'Срок приглашения истёк',
                 })
             }
 
@@ -36,6 +54,7 @@ export const invitationController = {
                 companyId: invitation.companyId,
                 companyName: invitation.companyName,
                 role: invitation.role,
+                status: invitation.status,
                 expiresAt: invitation.expiresAt,
             })
         } catch (error) {
@@ -71,9 +90,21 @@ export const invitationController = {
                 })
             }
 
-            if (result.error === 'USED') {
+            if (result.error === 'ACCEPTED') {
                 return res.status(400).json({
                     message: 'Приглашение уже использовано',
+                })
+            }
+
+            if (result.error === 'DECLINED') {
+                return res.status(400).json({
+                    message: 'Приглашение отклонено',
+                })
+            }
+
+            if (result.error === 'REVOKED') {
+                return res.status(400).json({
+                    message: 'Приглашение отозвано',
                 })
             }
 
@@ -82,6 +113,12 @@ export const invitationController = {
                     message: 'Срок приглашения истёк',
                 })
             }
+
+            // if (result.error === 'FORBIDDEN_USER') {
+            //     return res.status(403).json({
+            //         message: 'Приглашение создано для другого пользователя',
+            //     })
+            // }
 
             if (result.error === 'ALREADY_MEMBER') {
                 return res.status(409).json({
@@ -99,6 +136,69 @@ export const invitationController = {
 
             return res.status(500).json({
                 message: 'Ошибка принятия приглашения',
+            })
+        }
+    },
+
+    async decline(req, res) {
+        try {
+            const { token } = req.params
+
+            if (!token) {
+                return res.status(400).json({
+                    message: 'token обязателен',
+                })
+            }
+
+            const result = await invitationModel.declineByToken({
+                token,
+            })
+
+            if (result.error === 'NOT_FOUND') {
+                return res.status(404).json({
+                    message: 'Приглашение не найдено',
+                })
+            }
+
+            if (result.error === 'ACCEPTED') {
+                return res.status(400).json({
+                    message: 'Приглашение уже использовано',
+                })
+            }
+
+            if (result.error === 'DECLINED') {
+                return res.status(400).json({
+                    message: 'Приглашение уже отклонено',
+                })
+            }
+
+            if (result.error === 'REVOKED') {
+                return res.status(400).json({
+                    message: 'Приглашение отозвано',
+                })
+            }
+
+            if (result.error === 'EXPIRED') {
+                return res.status(400).json({
+                    message: 'Срок приглашения истёк',
+                })
+            }
+
+            // if (result.error === 'FORBIDDEN_USER') {
+            //     return res.status(403).json({
+            //         message: 'Приглашение создано для другого пользователя',
+            //     })
+            // }
+
+            return res.status(200).json({
+                message: 'Приглашение отклонено',
+                invitation: result.invitation,
+            })
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Ошибка отклонения приглашения',
             })
         }
     },

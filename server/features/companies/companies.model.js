@@ -197,22 +197,122 @@ export const companyModel = {
         return rows[0] || null
     },
 
-    async createInvitation({ id, token, companyId, role, createdBy, expiresAt }) {
+    async createInvitation({
+        id,
+        token,
+        companyId,
+        userId,
+        role,
+        createdBy,
+        expiresAt,
+    }) {
         const { rows } = await connectDB.query(
             `
                 INSERT INTO invitations
-                ( id, token, company_id, role, created_by, expires_at )
-                VALUES ( $1, $2, $3, $4, $5, $6 )
+                ( id, token, company_id, user_id, role, created_by, expires_at, status )
+                VALUES ( $1, $2, $3, $4, $5, $6, $7, 'PENDING' )
                 RETURNING
                     id,
                     token,
                     company_id as "companyId",
+                    user_id as "userId",
                     role,
+                    status,
                     expires_at as "expiresAt"
             `,
-            [id, token, companyId, role, createdBy, expiresAt],
+            [id, token, companyId, userId, role, createdBy, expiresAt],
         )
 
         return rows[0]
+    },
+
+    async searchUsersForInvite({ companyId, query }) {
+        const { rows } = await connectDB.query(
+            `
+                SELECT
+                    u.id,
+                    u.login,
+                    CASE
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM company_members cm
+                            WHERE cm.company_id = $2
+                              AND cm.user_id = u.id
+                        ) THEN 'ALREADY_MEMBER'
+                        WHEN EXISTS (
+                            SELECT 1
+                            FROM invitations i
+                            WHERE i.company_id = $2
+                              AND i.user_id = u.id
+                              AND i.status = 'PENDING'
+                              AND i.expires_at > NOW()
+                        ) THEN 'INVITED'
+                        ELSE 'CAN_INVITE'
+                    END as status
+                FROM users u
+                WHERE u.login ILIKE $1
+                ORDER BY u.login
+                LIMIT 10
+            `,
+            [`%${query}%`, companyId],
+        )
+
+        return rows
+    },
+
+    async getInvitationById({ companyId, invitationId }) {
+        const { rows } = await connectDB.query(
+            `
+                SELECT
+                    id,
+                    company_id as "companyId",
+                    user_id as "userId",
+                    role,
+                    status,
+                    expires_at as "expiresAt"
+                FROM invitations
+                WHERE id = $1
+                  AND company_id = $2
+            `,
+            [invitationId, companyId],
+        )
+
+        return rows[0] || null
+    },
+
+    async revokeInvitation({ companyId, invitationId }) {
+        const { rows } = await connectDB.query(
+            `
+                UPDATE invitations
+                SET status = 'REVOKED'
+                WHERE id = $1
+                  AND company_id = $2
+                  AND status = 'PENDING'
+                RETURNING
+                    id,
+                    company_id as "companyId",
+                    user_id as "userId",
+                    role,
+                    status,
+                    expires_at as "expiresAt"
+            `,
+            [invitationId, companyId],
+        )
+
+        return rows[0] || null
+    },
+
+    async isMember(companyId, userId) {
+        const { rows } = await connectDB.query(
+            `
+        SELECT 1
+        FROM company_members
+        WHERE company_id = $1
+          AND user_id = $2
+        `,
+            [companyId, userId],
+        )
+
+        return rows.length > 0
     },
 }

@@ -10,8 +10,13 @@ invitationsRouter.post(
     invitationController.accept,
 )
 
+invitationsRouter.post(
+    '/:token/decline',
+    authMiddleware,
+    invitationController.decline,
+)
+
 invitationsRouter.get(
     '/:token',
-    authMiddleware,
     invitationController.getByToken,
 )

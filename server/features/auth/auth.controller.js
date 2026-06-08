@@ -8,9 +8,9 @@ export const authController = {
         try {
             const { login, password, email } = req.body
 
-            if (!login || !password) {
+            if (!login || !password || !email) {
                 return res.status(400).json({
-                    message: 'Логин и пароль обязательны',
+                    message: 'Логин , пароль или почта обязательны',
                 })
             }
 
