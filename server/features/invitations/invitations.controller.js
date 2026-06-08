@@ -57,10 +57,10 @@ export const invitationController = {
                 })
             }
 
-            const id = nanoid(8)
+            const companyMemberId = nanoid(8)
 
             const result = await invitationModel.acceptByToken({
-                id,
+                companyMemberId,
                 token,
                 userId: req.user.id,
             })

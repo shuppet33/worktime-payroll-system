@@ -11,3 +11,5 @@ authRouter.post('/login', authController.login)
 authRouter.post('/logout', authMiddleware, authController.logout)
 
 authRouter.get('/me', authMiddleware, authController.me)
+
+authRouter.get('/check-login', authController.checkLogin)
