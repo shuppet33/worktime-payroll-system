@@ -23,7 +23,7 @@ export const invitationModel = {
         return rows[0] || null
     },
 
-    async acceptByToken({ id, token, userId }) {
+    async acceptByToken({ companyMemberId, token, userId }) {
         try {
             const { rows: invitationRows } = await connectDB.query(
                 `
@@ -77,7 +77,7 @@ export const invitationModel = {
                     VALUES ( $1, $2, $3, $4 )
                     RETURNING id, role
                 `,
-                [id, invitation.companyId, userId, invitation.role],
+                [companyMemberId, invitation.companyId, userId, invitation.role],
             )
 
             await connectDB.query(
