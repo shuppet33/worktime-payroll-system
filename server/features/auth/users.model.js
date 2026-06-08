@@ -27,15 +27,14 @@ export const userModel = {
         return rows[0]
     },
 
-    async create({ id, login, passwordHash }) {
-
+    async create({ id, login, passwordHash, email }) {
         const { rows } = await connectDB.query(
             `
                 INSERT INTO users
-                ( id, login, password_hash )
-                VALUES ( $1, $2, $3 ) RETURNING *
+                ( id, login, password_hash, email )
+                VALUES ( $1, $2, $3, $4 ) RETURNING *
             `,
-            [id, login, passwordHash],
+            [id, login, passwordHash, email],
         )
 
         return rows[0]
