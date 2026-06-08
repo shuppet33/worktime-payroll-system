@@ -207,4 +207,21 @@ export const invitationModel = {
 
         return Boolean(rows[0])
     },
+
+    async hasActiveInvite(companyId, userId) {
+        const { rows } = await connectDB.query(
+            `
+            SELECT 1
+            FROM invitations
+            WHERE company_id = $1
+              AND user_id = $2
+              AND status = 'PENDING'
+              AND expires_at > NOW()
+            LIMIT 1
+        `,
+            [companyId, userId],
+        )
+
+        return rows.length > 0
+    }
 }
