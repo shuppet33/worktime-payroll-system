@@ -4,6 +4,8 @@ import dotenv from 'dotenv'
 import { authRouter } from './routes/auth.routes.js'
 import { companiesRouter } from './routes/companies.routes.js'
 import { invitationsRouter } from './routes/invitations.routes.js'
+import { searchLoginRoutes } from './routes/search-login.routes.js'
+
 
 const server = express()
 const PORT = 3000
@@ -21,5 +23,6 @@ server.use(express.json())
 server.use('/auth', authRouter)
 server.use('/companies', companiesRouter)
 server.use('/invitations', invitationsRouter)
+server.use('/users', searchLoginRoutes)
 
 server.listen(PORT, () => console.log(`Сервер запущен. Порт: ${PORT}`))
