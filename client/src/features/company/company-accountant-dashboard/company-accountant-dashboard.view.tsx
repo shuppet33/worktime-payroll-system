@@ -105,14 +105,9 @@ export const CompanyAccountantDashboard =
             )
 
             const employees = members.filter((member) => member.employeeId)
-            const selectedEmployee =
-                employees.find(
-                    (member) => member.employeeId === selectedEmployeeId,
-                ) ?? employees[0]
-
-            if (!selectedEmployeeId && selectedEmployee?.employeeId) {
-                accountantSelectedEmployeeIdAtom(ctx, selectedEmployee.employeeId)
-            }
+            const selectedEmployee = employees.find(
+                (member) => member.employeeId === selectedEmployeeId,
+            )
 
             const calendarDays: WorkDay[] = workLogs.map((workLog) => ({
                 day: dayjs(workLog.workDate).date(),
@@ -132,8 +127,12 @@ export const CompanyAccountantDashboard =
                 <SAccountantLayout>
                     <SSummaryCard $theme={theme}>
                         <SSectionHeader>
-                            <SSectionTitle>{company.company_name}</SSectionTitle>
-                            <SSectionHint>Рабочее место бухгалтера</SSectionHint>
+                            <SSectionTitle>
+                                {company.company_name}
+                            </SSectionTitle>
+                            <SSectionHint>
+                                Рабочее место бухгалтера
+                            </SSectionHint>
                         </SSectionHeader>
 
                         <SEmployeeList>
@@ -141,11 +140,9 @@ export const CompanyAccountantDashboard =
                                 <SEmployeeButton
                                     key={member.id}
                                     $active={
-                                        member.employeeId ===
-                                        selectedEmployee?.employeeId
+                                        member.employeeId === selectedEmployeeId
                                     }
                                     $theme={theme}
-                                    disabled={!member.employeeId}
                                     onClick={() => {
                                         onSelectMember(member.id)
 
@@ -157,7 +154,9 @@ export const CompanyAccountantDashboard =
                                         }
                                     }}
                                 >
-                                    <SEmployeeName>{member.login}</SEmployeeName>
+                                    <SEmployeeName>
+                                        {member.login}
+                                    </SEmployeeName>
                                     <SEmployeeMeta>
                                         {member.position ?? member.role}
                                         {!member.employeeId
@@ -170,273 +169,322 @@ export const CompanyAccountantDashboard =
                     </SSummaryCard>
 
                     <SWorkspace>
-                        <SSummaryGrid>
+                        {!selectedEmployee ? (
                             <SSummaryCard $theme={theme}>
-                                <SSummaryLabel>Часы за месяц</SSummaryLabel>
-                                <SSummaryValue>
-                                    {formatHours(monthHours)}
-                                </SSummaryValue>
+                                Выберите сотрудника слева
                             </SSummaryCard>
+                        ) : (
+                            <>
+                                <SSummaryGrid>
+                                    <SSummaryCard $theme={theme}>
+                                        <SSummaryLabel>
+                                            Часы за месяц
+                                        </SSummaryLabel>
+                                        <SSummaryValue>
+                                            {formatHours(monthHours)}
+                                        </SSummaryValue>
+                                    </SSummaryCard>
 
-                            <SSummaryCard $theme={theme}>
-                                <SSummaryLabel>Переработки</SSummaryLabel>
-                                <SSummaryValue>
-                                    {formatHours(monthOvertime)}
-                                </SSummaryValue>
-                            </SSummaryCard>
+                                    <SSummaryCard $theme={theme}>
+                                        <SSummaryLabel>
+                                            Переработки
+                                        </SSummaryLabel>
+                                        <SSummaryValue>
+                                            {formatHours(monthOvertime)}
+                                        </SSummaryValue>
+                                    </SSummaryCard>
 
-                            <SSummaryCard $theme={theme}>
-                                <SSummaryLabel>Расчеты компании</SSummaryLabel>
-                                <SSummaryValue>
-                                    {companyPayrolls.length}
-                                </SSummaryValue>
-                            </SSummaryCard>
-                        </SSummaryGrid>
+                                    <SSummaryCard $theme={theme}>
+                                        <SSummaryLabel>
+                                            Расчеты компании
+                                        </SSummaryLabel>
+                                        <SSummaryValue>
+                                            {companyPayrolls.length}
+                                        </SSummaryValue>
+                                    </SSummaryCard>
+                                </SSummaryGrid>
 
-                        <EmployeeCalendar
-                            loading={workLogsLoading}
-                            month={month}
-                            onMonthChange={(nextMonth) =>
-                                accountantMonthAtom(ctx, nextMonth)
-                            }
-                            onSelectDay={(day) =>
-                                workLogDateAtom(
-                                    ctx,
-                                    dayjs()
-                                        .year(year)
-                                        .month(month - 1)
-                                        .date(day)
-                                        .format('YYYY-MM-DD'),
-                                )
-                            }
-                            onYearChange={(nextYear) =>
-                                accountantYearAtom(ctx, nextYear)
-                            }
-                            paymentType="hourly"
-                            selectedDay={dayjs(workLogDate).date()}
-                            theme={theme}
-                            workDays={calendarDays}
-                            year={year}
-                        />
-
-                        <SSummaryCard $theme={theme}>
-                            <SSectionHeader>
-                                <SSectionTitle>Табель рабочего времени</SSectionTitle>
-                                <SSectionHint>
-                                    Добавляйте и удаляйте записи табеля для
-                                    выбранного сотрудника.
-                                </SSectionHint>
-                            </SSectionHeader>
-
-                            <SFormGrid>
-                                <DatePicker
-                                    value={dayjs(workLogDate)}
-                                    onChange={(date) => {
-                                        if (date) {
-                                            workLogDateAtom(
-                                                ctx,
-                                                date.format('YYYY-MM-DD'),
-                                            )
-                                        }
-                                    }}
-                                />
-                                <InputNumber
-                                    min={0}
-                                    value={workLogHours}
-                                    addonAfter="ч"
-                                    onChange={(value) =>
-                                        workLogHoursAtom(ctx, Number(value ?? 0))
+                                <EmployeeCalendar
+                                    loading={workLogsLoading}
+                                    month={month}
+                                    onMonthChange={(nextMonth) =>
+                                        accountantMonthAtom(ctx, nextMonth)
                                     }
-                                />
-                                <InputNumber
-                                    min={0}
-                                    value={workLogOvertime}
-                                    addonAfter="ot"
-                                    onChange={(value) =>
-                                        workLogOvertimeAtom(
+                                    onSelectDay={(day) =>
+                                        workLogDateAtom(
                                             ctx,
-                                            Number(value ?? 0),
+                                            dayjs()
+                                                .year(year)
+                                                .month(month - 1)
+                                                .date(day)
+                                                .format('YYYY-MM-DD'),
                                         )
                                     }
+                                    onYearChange={(nextYear) =>
+                                        accountantYearAtom(ctx, nextYear)
+                                    }
+                                    paymentType="hourly"
+                                    selectedDay={dayjs(workLogDate).date()}
+                                    theme={theme}
+                                    workDays={calendarDays}
+                                    year={year}
                                 />
-                                <Button
-                                    type="primary"
-                                    loading={createWorkLogLoading}
-                                    disabled={!selectedEmployee?.employeeId}
-                                    onClick={() => createWorkLogAsync(ctx)}
-                                >
-                                    Добавить
-                                </Button>
-                            </SFormGrid>
 
-                            <SList>
-                                {workLogs.map((workLog) => (
-                                    <SListItem
-                                        key={workLog.id}
-                                        $theme={theme}
-                                    >
-                                        <div>
-                                            <SListTitle>
-                                                {dayjs(
-                                                    workLog.workDate,
-                                                ).format('D MMMM YYYY')}
-                                            </SListTitle>
-                                            <SListMeta>
-                                                {formatHours(
-                                                    workLog.hoursWorked,
-                                                )}{' '}
-                                                +{' '}
-                                                {formatHours(
-                                                    workLog.overtimeHours,
-                                                )}{' '}
-                                                переработки
-                                            </SListMeta>
-                                        </div>
+                                <SSummaryCard $theme={theme}>
+                                    <SSectionHeader>
+                                        <SSectionTitle>
+                                            Табель рабочего времени
+                                        </SSectionTitle>
+                                        <SSectionHint>
+                                            Добавляйте и удаляйте записи табеля
+                                            для выбранного сотрудника.
+                                        </SSectionHint>
+                                    </SSectionHeader>
 
-                                        <Button
-                                            danger
-                                            onClick={() =>
-                                                deleteWorkLogAsync(
+                                    <SFormGrid>
+                                        <DatePicker
+                                            value={dayjs(workLogDate)}
+                                            onChange={(date) => {
+                                                if (date) {
+                                                    workLogDateAtom(
+                                                        ctx,
+                                                        date.format(
+                                                            'YYYY-MM-DD',
+                                                        ),
+                                                    )
+                                                }
+                                            }}
+                                        />
+                                        <InputNumber
+                                            min={0}
+                                            value={workLogHours}
+                                            addonAfter="ч"
+                                            onChange={(value) =>
+                                                workLogHoursAtom(
                                                     ctx,
-                                                    workLog.id,
+                                                    Number(value ?? 0),
                                                 )
                                             }
-                                        >
-                                            Удалить
-                                        </Button>
-                                    </SListItem>
-                                ))}
-                            </SList>
-                        </SSummaryCard>
-
-                        <SSummaryCard $theme={theme}>
-                            <SSectionHeader>
-                                <SSectionTitle>Премии</SSectionTitle>
-                                <SSectionHint>
-                                    Создавайте и удаляйте премии сотрудника.
-                                </SSectionHint>
-                            </SSectionHeader>
-
-                            <SFormGrid>
-                                <InputNumber
-                                    min={0}
-                                    value={bonusAmount}
-                                    addonAfter="₽"
-                                    onChange={(value) =>
-                                        bonusAmountAtom(ctx, Number(value ?? 0))
-                                    }
-                                />
-                                <Input
-                                    value={bonusDescription}
-                                    placeholder="Описание"
-                                    onChange={(event) =>
-                                        bonusDescriptionAtom(
-                                            ctx,
-                                            event.target.value,
-                                        )
-                                    }
-                                />
-                                <Button
-                                    type="primary"
-                                    loading={createBonusLoading}
-                                    disabled={!selectedEmployee?.employeeId}
-                                    onClick={() => createBonusAsync(ctx)}
-                                >
-                                    Добавить премию
-                                </Button>
-                            </SFormGrid>
-
-                            <SList>
-                                {bonuses.map((bonus) => (
-                                    <SListItem key={bonus.id} $theme={theme}>
-                                        <div>
-                                            <SListTitle>
-                                                {formatMoney(bonus.amount)} ₽
-                                            </SListTitle>
-                                            <SListMeta>
-                                                {bonus.description || 'Премия'}
-                                            </SListMeta>
-                                        </div>
-
+                                        />
+                                        <InputNumber
+                                            min={0}
+                                            value={workLogOvertime}
+                                            addonAfter="ot"
+                                            onChange={(value) =>
+                                                workLogOvertimeAtom(
+                                                    ctx,
+                                                    Number(value ?? 0),
+                                                )
+                                            }
+                                        />
                                         <Button
-                                            danger
+                                            type="primary"
+                                            loading={createWorkLogLoading}
+                                            disabled={
+                                                !selectedEmployee?.employeeId
+                                            }
                                             onClick={() =>
-                                                deleteBonusAsync(ctx, bonus.id)
+                                                createWorkLogAsync(ctx)
                                             }
                                         >
-                                            Удалить
+                                            Добавить
                                         </Button>
-                                    </SListItem>
-                                ))}
-                            </SList>
-                        </SSummaryCard>
+                                    </SFormGrid>
 
-                        <SSummaryCard $theme={theme}>
-                            <SSectionHeader>
-                                <SSectionTitle>Зарплата</SSectionTitle>
-                                <SSectionHint>
-                                    Рассчитайте зарплату за выбранный период.
-                                </SSectionHint>
-                            </SSectionHeader>
+                                    <SList>
+                                        {workLogs.map((workLog) => (
+                                            <SListItem
+                                                key={workLog.id}
+                                                $theme={theme}
+                                            >
+                                                <div>
+                                                    <SListTitle>
+                                                        {dayjs(
+                                                            workLog.workDate,
+                                                        ).format('D MMMM YYYY')}
+                                                    </SListTitle>
+                                                    <SListMeta>
+                                                        {formatHours(
+                                                            workLog.hoursWorked,
+                                                        )}{' '}
+                                                        +{' '}
+                                                        {formatHours(
+                                                            workLog.overtimeHours,
+                                                        )}{' '}
+                                                        переработки
+                                                    </SListMeta>
+                                                </div>
 
-                            <SFormGrid>
-                                <Select
-                                    value={month}
-                                    options={monthOptions}
-                                    onChange={(value) =>
-                                        accountantMonthAtom(ctx, value)
-                                    }
-                                />
-                                <Select
-                                    value={year}
-                                    options={yearOptions}
-                                    onChange={(value) =>
-                                        accountantYearAtom(ctx, value)
-                                    }
-                                />
-                                <Button
-                                    type="primary"
-                                    loading={calculatePayrollLoading}
-                                    disabled={!selectedEmployee?.employeeId}
-                                    onClick={() => calculatePayrollAsync(ctx)}
-                                >
-                                    Рассчитать
-                                </Button>
-                            </SFormGrid>
+                                                <Button
+                                                    danger
+                                                    onClick={() =>
+                                                        deleteWorkLogAsync(
+                                                            ctx,
+                                                            workLog.id,
+                                                        )
+                                                    }
+                                                >
+                                                    Удалить
+                                                </Button>
+                                            </SListItem>
+                                        ))}
+                                    </SList>
+                                </SSummaryCard>
 
-                            <SList>
-                                {payrolls.map((payroll) => (
-                                    <SListItem
-                                        key={payroll.id}
-                                        $theme={theme}
-                                    >
-                                        <div>
-                                            <SListTitle>
-                                                {payroll.month}/{payroll.year}:{' '}
-                                                {formatMoney(
-                                                    payroll.finalSalary,
-                                                )}{' '}
-                                                ₽
-                                            </SListTitle>
-                                            <SListMeta>
-                                                База{' '}
-                                                {formatMoney(
-                                                    payroll.baseSalary,
-                                                )}
-                                                , премии{' '}
-                                                {formatMoney(
-                                                    payroll.bonusPayment,
-                                                )}
-                                                , NDFL{' '}
-                                                {formatMoney(
-                                                    payroll.ndflAmount,
-                                                )}
-                                            </SListMeta>
-                                        </div>
-                                    </SListItem>
-                                ))}
-                            </SList>
-                        </SSummaryCard>
+                                <SSummaryCard $theme={theme}>
+                                    <SSectionHeader>
+                                        <SSectionTitle>Премии</SSectionTitle>
+                                        <SSectionHint>
+                                            Создавайте и удаляйте премии
+                                            сотрудника.
+                                        </SSectionHint>
+                                    </SSectionHeader>
+
+                                    <SFormGrid>
+                                        <InputNumber
+                                            min={0}
+                                            value={bonusAmount}
+                                            addonAfter="₽"
+                                            onChange={(value) =>
+                                                bonusAmountAtom(
+                                                    ctx,
+                                                    Number(value ?? 0),
+                                                )
+                                            }
+                                        />
+                                        <Input
+                                            value={bonusDescription}
+                                            placeholder="Описание"
+                                            onChange={(event) =>
+                                                bonusDescriptionAtom(
+                                                    ctx,
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                        <Button
+                                            type="primary"
+                                            loading={createBonusLoading}
+                                            disabled={
+                                                !selectedEmployee?.employeeId
+                                            }
+                                            onClick={() =>
+                                                createBonusAsync(ctx)
+                                            }
+                                        >
+                                            Добавить премию
+                                        </Button>
+                                    </SFormGrid>
+
+                                    <SList>
+                                        {bonuses.map((bonus) => (
+                                            <SListItem
+                                                key={bonus.id}
+                                                $theme={theme}
+                                            >
+                                                <div>
+                                                    <SListTitle>
+                                                        {formatMoney(
+                                                            bonus.amount,
+                                                        )}{' '}
+                                                        ₽
+                                                    </SListTitle>
+                                                    <SListMeta>
+                                                        {bonus.description ||
+                                                            'Премия'}
+                                                    </SListMeta>
+                                                </div>
+
+                                                <Button
+                                                    danger
+                                                    onClick={() =>
+                                                        deleteBonusAsync(
+                                                            ctx,
+                                                            bonus.id,
+                                                        )
+                                                    }
+                                                >
+                                                    Удалить
+                                                </Button>
+                                            </SListItem>
+                                        ))}
+                                    </SList>
+                                </SSummaryCard>
+
+                                <SSummaryCard $theme={theme}>
+                                    <SSectionHeader>
+                                        <SSectionTitle>Зарплата</SSectionTitle>
+                                        <SSectionHint>
+                                            Рассчитайте зарплату за выбранный
+                                            период.
+                                        </SSectionHint>
+                                    </SSectionHeader>
+
+                                    <SFormGrid>
+                                        <Select
+                                            value={month}
+                                            options={monthOptions}
+                                            onChange={(value) =>
+                                                accountantMonthAtom(ctx, value)
+                                            }
+                                        />
+                                        <Select
+                                            value={year}
+                                            options={yearOptions}
+                                            onChange={(value) =>
+                                                accountantYearAtom(ctx, value)
+                                            }
+                                        />
+                                        <Button
+                                            type="primary"
+                                            loading={calculatePayrollLoading}
+                                            disabled={
+                                                !selectedEmployee?.employeeId
+                                            }
+                                            onClick={() =>
+                                                calculatePayrollAsync(ctx)
+                                            }
+                                        >
+                                            Рассчитать
+                                        </Button>
+                                    </SFormGrid>
+
+                                    <SList>
+                                        {payrolls.map((payroll) => (
+                                            <SListItem
+                                                key={payroll.id}
+                                                $theme={theme}
+                                            >
+                                                <div>
+                                                    <SListTitle>
+                                                        {payroll.month}/
+                                                        {payroll.year}:{' '}
+                                                        {formatMoney(
+                                                            payroll.finalSalary,
+                                                        )}{' '}
+                                                        ₽
+                                                    </SListTitle>
+                                                    <SListMeta>
+                                                        База{' '}
+                                                        {formatMoney(
+                                                            payroll.baseSalary,
+                                                        )}
+                                                        , премии{' '}
+                                                        {formatMoney(
+                                                            payroll.bonusPayment,
+                                                        )}
+                                                        , NDFL{' '}
+                                                        {formatMoney(
+                                                            payroll.ndflAmount,
+                                                        )}
+                                                    </SListMeta>
+                                                </div>
+                                            </SListItem>
+                                        ))}
+                                    </SList>
+                                </SSummaryCard>
+                            </>
+                        )}
                     </SWorkspace>
                 </SAccountantLayout>
             )

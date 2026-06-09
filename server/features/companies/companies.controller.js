@@ -542,6 +542,7 @@ export const companyController = {
     async getCompanyPayrolls(req, res) {
         try {
             const { companyId } = req.params
+
             const company = await companyModel.getCompanyById({
                 companyId,
                 userId: req.user.id,

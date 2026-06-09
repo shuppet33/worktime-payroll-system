@@ -37,7 +37,7 @@ export const invitationModel = {
         return rows[0] || null
     },
 
-    async acceptByToken({ companyMemberId, token, userId }) {
+    async acceptByToken({ companyMemberId, employeeId, token, userId }) {
         try {
             const { rows: invitationRows } = await connectDB.query(
                 `
@@ -68,7 +68,7 @@ export const invitationModel = {
             }
 
             if (new Date(invitation.expiresAt).getTime() <= Date.now()) {
-                await client.query(
+                await connectDB.query(
                     `
                     UPDATE invitations
                     SET status = 'EXPIRED'
@@ -76,8 +76,6 @@ export const invitationModel = {
                 `,
                     [invitation.id],
                 )
-
-                await client.query('COMMIT')
 
                 return { error: 'EXPIRED' }
             }
@@ -111,6 +109,49 @@ export const invitationModel = {
                 ],
             )
 
+            let employee = null
+
+            if (invitation.role === 'EMPLOYEE') {
+                const { rows: employeeRows } = await connectDB.query(
+                    `
+                        INSERT INTO employees
+                        (
+                            id,
+                            user_id,
+                            position,
+                            payment_type,
+                            fixed_salary,
+                            hourly_rate,
+                            hire_date,
+                            is_active
+                        )
+                        VALUES
+                            (
+                                $1,
+                                $2,
+                                $3,
+                                $4,
+                                $5,
+                                $6,
+                                CURRENT_DATE,
+                                true
+                            )
+                            RETURNING
+                        id,
+                        user_id as "userId",
+                        position,
+                        payment_type as "paymentType",
+                        fixed_salary as "fixedSalary",
+                        hourly_rate as "hourlyRate",
+                        hire_date as "hireDate",
+                        is_active as "isActive"
+                    `,
+                    [employeeId, userId, 'Сотрудник', 'HOURLY', null, 0],
+                )
+
+                employee = employeeRows[0]
+            }
+
             await connectDB.query(
                 `
                     UPDATE invitations
@@ -123,6 +164,7 @@ export const invitationModel = {
             return {
                 companyId: invitation.companyId,
                 member: createdMemberRows[0],
+                employee,
             }
         } catch (error) {
             throw error
@@ -211,5 +253,5 @@ export const invitationModel = {
         )
 
         return rows.length > 0
-    }
+    },
 }

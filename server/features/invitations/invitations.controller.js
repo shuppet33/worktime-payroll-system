@@ -85,10 +85,11 @@ export const invitationController = {
             }
 
             const companyMemberId = nanoid(8)
+            const employeeId = nanoid(8)
 
-            console.log('LOOOG')
             const result = await invitationModel.acceptByToken({
                 companyMemberId,
+                employeeId,
                 token,
                 userId: req.user.id,
             })
@@ -134,6 +135,7 @@ export const invitationController = {
                 message: 'Приглашение принято',
                 company: result.company,
                 member: result.member,
+                employee: result.employee,
             })
         } catch (error) {
             console.error(error)

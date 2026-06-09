@@ -131,16 +131,20 @@ export const companyModel = {
 
         const { rows } = await connectDB.query(
             `
-                SELECT
-                    u.id,
-                    u.login,
-                    cm.role
+                SELECT u.id,
+                       u.login,
+                       cm.role,
+                       e.id           as "employeeId",
+                       e.position,
+                       e.payment_type as "paymentType",
+                       e.fixed_salary as "fixedSalary",
+                       e.hourly_rate  as "hourlyRate"
                 FROM company_members cm
                          JOIN users u ON u.id = cm.user_id
+                         LEFT JOIN employees e ON e.user_id = cm.user_id
                 WHERE cm.company_id = $1
                   AND cm.role <> 'OWNER'
-                ORDER BY
-                    u.login
+                ORDER BY u.login
             `,
             [companyId],
         )
@@ -258,7 +262,7 @@ export const companyModel = {
                     e.hire_date as "hireDate",
                     e.is_active as "isActive"
                 FROM company_members cm
-                LEFT JOIN employees e ON e.company_member_id = cm.id
+                LEFT JOIN employees e ON e.user_id = cm.user_id
                 WHERE cm.company_id = $1
                   AND cm.user_id = $2
             `,
@@ -324,13 +328,13 @@ export const companyModel = {
             `
                 SELECT
                     requester.role as "requesterRole",
-                    owner_member.user_id as "employeeUserId",
+                    e.user_id as "employeeUserId",
                     e.id as "employeeId"
                 FROM company_members requester
-                JOIN employees e ON e.id = $2
-                JOIN company_members owner_member
-                  ON owner_member.id = e.company_member_id
-                 AND owner_member.company_id = requester.company_id
+                         JOIN employees e ON e.id = $2
+                         JOIN company_members employee_member
+                              ON employee_member.user_id = e.user_id
+                                  AND employee_member.company_id = requester.company_id
                 WHERE requester.company_id = $1
                   AND requester.user_id = $3
             `,
@@ -397,7 +401,7 @@ export const companyModel = {
             `
                 DELETE FROM work_logs wl
                 USING employees e
-                JOIN company_members cm ON cm.id = e.company_member_id
+                JOIN company_members cm ON cm.user_id = e.user_id
                 WHERE wl.id = $1
                   AND wl.employee_id = e.id
                   AND cm.company_id = $2
@@ -454,7 +458,7 @@ export const companyModel = {
             `
                 DELETE FROM bonuses b
                 USING employees e
-                JOIN company_members cm ON cm.id = e.company_member_id
+                JOIN company_members cm ON cm.user_id = e.user_id
                 WHERE b.id = $1
                   AND b.employee_id = e.id
                   AND cm.company_id = $2
@@ -484,7 +488,7 @@ export const companyModel = {
                         WHERE b.employee_id = e.id
                     ), 0) as "bonusPayment"
                 FROM employees e
-                JOIN company_members cm ON cm.id = e.company_member_id
+                JOIN company_members cm ON cm.user_id = e.user_id
                 LEFT JOIN work_logs wl
                   ON wl.employee_id = e.id
                  AND wl.work_date >= make_date($3, $4, 1)
@@ -574,7 +578,7 @@ export const companyModel = {
                     p.created_at as "createdAt"
                 FROM payrolls p
                 JOIN employees e ON e.id = p.employee_id
-                JOIN company_members cm ON cm.id = e.company_member_id
+                JOIN company_members cm ON cm.user_id = e.user_id
                 WHERE cm.company_id = $1
                 ORDER BY p.period_year DESC, p.period_month DESC, p.created_at DESC
             `,
