@@ -731,4 +731,32 @@ export const companyModel = {
 
         return rows.length > 0
     },
+
+    async findEmail(login) {
+        const { rows } = await connectDB.query(
+            `
+                SELECT email
+                FROM users
+                WHERE login = $1
+                LIMIT 1
+            `,
+            [login],
+        )
+
+        return rows[0]?.email || null
+    },
+
+    async findCompanyName(companyId) {
+        const { rows } = await connectDB.query(
+            `
+                SELECT name
+                FROM companies
+                WHERE id = $1
+                LIMIT 1
+            `,
+            [companyId],
+        )
+
+        return rows[0]?.name || null
+    }
 }

@@ -1,6 +1,7 @@
 import { userModel } from './users.model.js'
 import { comparePassword, hashPassword } from '../../shared/utils/password.js'
 import { generateToken } from '../../shared/utils/jwt.js'
+import { mailSender } from '../mailer/mailSender.controller.js'
 import { nanoid } from 'nanoid'
 
 export const authController = {
@@ -10,13 +11,12 @@ export const authController = {
 
             if (!login || !password || !email) {
                 return res.status(400).json({
-                    message: 'Логин , пароль или почта обязательны',
+                    message: 'Логин, пароль и почта обязательны',
                 })
             }
 
-            const normalizedLogin = login.trim()
-            const normalizedEmail =
-                typeof email === 'string' && email.trim() ? email.trim() : null
+            const normalizedLogin = login.trim().toLowerCase()
+            const normalizedEmail = email.trim().toLowerCase()
 
             const existingUser = await userModel.getByLogin(normalizedLogin)
 
@@ -30,24 +30,35 @@ export const authController = {
 
             const userId = nanoid(8)
 
+            // 1. verification code
+
+            const code = Math.floor(
+                10000000 + Math.random() * 90000000,
+            ).toString()
+
+            const codeHash = await hashPassword(code)
+
+            const expiresAt = new Date(Date.now() + 1000 * 60 * 10) // 10 min
+
+            // 2. create user
             const user = await userModel.create({
                 id: userId,
                 login: normalizedLogin,
                 passwordHash,
                 email: normalizedEmail,
+                verificationCode: codeHash,
+                verificationExpiresAt: expiresAt,
             })
 
-            const token = generateToken({
-                id: user.id,
-            })
+            // 3. send email
+            await mailSender.sendVerificationCode(
+                normalizedEmail,
+                code
+            )
 
             return res.status(201).json({
-                token,
-                user: {
-                    id: user.id,
-                    login: user.login,
-                    email: user.email,
-                },
+                message: 'Письмо отправлено на почту',
+                userId: user.id,
             })
         } catch (error) {
             console.error(error)
@@ -175,3 +186,5 @@ export const authController = {
         }
     },
 }
+
+

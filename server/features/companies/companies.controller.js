@@ -2,6 +2,7 @@ import { companyModel } from './companies.model.js'
 import { invitationModel } from '../invitations/invitations.model.js'
 import { userModel } from '../auth/users.model.js'
 import { nanoid } from 'nanoid'
+import { mailSender } from '../mailer/mailSender.controller.js'
 
 const canViewEmployeeData = (access, userId) => {
     return (
@@ -610,6 +611,7 @@ export const companyController = {
                 })
             }
 
+            // ---- get company + rights ----
             const company = await companyModel.getCompanyById({
                 companyId,
                 userId: req.user.id,
@@ -737,22 +739,17 @@ export const companyController = {
 
             const allowedInvitationRoles = ['EMPLOYEE', 'ACCOUNTANT']
 
+            // ---- validation ----
             if (!companyId) {
-                return res.status(400).json({
-                    message: 'companyId обязателен',
-                })
+                return res.status(400).json({ message: 'companyId обязателен' })
             }
 
             if (!role) {
-                return res.status(400).json({
-                    message: 'поле role обязательно',
-                })
+                return res.status(400).json({ message: 'поле role обязательно' })
             }
 
             if (!userId) {
-                return res.status(400).json({
-                    message: 'поле userId обязательно',
-                })
+                return res.status(400).json({ message: 'поле userId обязательно' })
             }
 
             if (!allowedInvitationRoles.includes(role)) {
@@ -778,6 +775,7 @@ export const companyController = {
                 })
             }
 
+            // ---- user check ----
             const invitedUser = await userModel.getById(userId)
 
             if (!invitedUser) {
@@ -786,17 +784,19 @@ export const companyController = {
                 })
             }
 
-            const member = await companyModel.getMemberById({
+            // ---- already in company ----
+            const existingMember = await companyModel.getMemberById({
                 companyId,
                 memberId: userId,
             })
 
-            if (member) {
+            if (existingMember) {
                 return res.status(409).json({
                     message: 'Пользователь уже состоит в этой компании',
                 })
             }
 
+            // ---- active invite check ----
             const hasActiveInvite = await invitationModel.hasActiveInvite(
                 companyId,
                 userId,
@@ -808,8 +808,10 @@ export const companyController = {
                 })
             }
 
+            // ---- create invitation ----
             const invitationId = nanoid(8)
             const token = nanoid(32)
+
             const expiresAt = new Date()
             expiresAt.setDate(expiresAt.getDate() + 7)
 
@@ -823,9 +825,16 @@ export const companyController = {
                 expiresAt,
             })
 
+            // ---- email ----
+            await mailSender.sendCompanyInvite(
+                invitedUser.email,
+                invitationId,
+                company.name,
+            )
+
             return res.status(201).json({
                 ...invitation,
-                inviteLink: `/invite/${invitation.token}`,
+                inviteLink: `/invite/${token}`,
             })
         } catch (error) {
             console.error(error)
