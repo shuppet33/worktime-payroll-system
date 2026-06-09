@@ -38,12 +38,8 @@ export const invitationModel = {
     },
 
     async acceptByToken({ companyMemberId, token, userId }) {
-        const client = await connectDB.connect()
-
         try {
-            await client.query('BEGIN')
-
-            const { rows: invitationRows } = await client.query(
+            const { rows: invitationRows } = await connectDB.query(
                 `
                     SELECT
                         i.id,
@@ -64,12 +60,10 @@ export const invitationModel = {
             const invitation = invitationRows[0]
 
             if (!invitation) {
-                await client.query('ROLLBACK')
                 return { error: 'NOT_FOUND' }
             }
 
             if (invitation.status !== 'PENDING') {
-                await client.query('ROLLBACK')
                 return { error: invitation.status }
             }
 
@@ -88,7 +82,7 @@ export const invitationModel = {
                 return { error: 'EXPIRED' }
             }
 
-            const { rows: memberRows } = await client.query(
+            const { rows: memberRows } = await connectDB.query(
                 `
                     SELECT id
                     FROM company_members
@@ -99,11 +93,10 @@ export const invitationModel = {
             )
 
             if (memberRows[0]) {
-                await client.query('ROLLBACK')
                 return { error: 'ALREADY_MEMBER' }
             }
 
-            const { rows: createdMemberRows } = await client.query(
+            const { rows: createdMemberRows } = await connectDB.query(
                 `
                     INSERT INTO company_members
                         ( id, company_id, user_id, role )
@@ -127,17 +120,12 @@ export const invitationModel = {
                 [invitation.id],
             )
 
-            await client.query('COMMIT')
-
             return {
                 companyId: invitation.companyId,
                 member: createdMemberRows[0],
             }
         } catch (error) {
-            await client.query('ROLLBACK')
             throw error
-        } finally {
-            client.release()
         }
     },
 

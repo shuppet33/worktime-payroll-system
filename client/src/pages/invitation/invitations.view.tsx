@@ -8,12 +8,15 @@ import { useNavigate, useParams } from 'react-router'
 
 import {
     acceptInvitationAsync,
+    declineInvitationAsync,
     getInvitationAsync,
 } from '$features/invitation/invitation.service.ts'
 import { loginModalOpenAtom } from '$features/main/login-modal/login-modal.reatom.ts'
 import { LoginModal } from '$features/main/login-modal/login-modal.view.tsx'
 
 import { tokenAtom } from '$entities/auth.ts'
+
+import type { InvitationStatus } from '$shared/invitation/invitation.types.ts'
 
 import {
     SInvitationContent,
@@ -22,6 +25,17 @@ import {
     SInvitationText,
     SInvitationTitle,
 } from './styles.ts'
+
+type InvitationError = Error & {
+    status?: number
+}
+
+const INVITATION_STATUS_MESSAGES: Partial<Record<InvitationStatus, string>> = {
+    ACCEPTED: 'Приглашение уже принято',
+    DECLINED: 'Приглашение отклонено',
+    EXPIRED: 'Срок приглашения истек',
+    REVOKED: 'Приглашение отозвано',
+}
 
 export const InvitationsPage = reatomComponent(({ ctx }) => {
     const { token } = useParams()
@@ -41,6 +55,20 @@ export const InvitationsPage = reatomComponent(({ ctx }) => {
         acceptInvitationAsync.statusesAtom,
     )
     const acceptError = ctx.spy(acceptInvitationAsync.errorAtom)
+    const { isPending: isDeclining, isRejected: isDeclineRejected } = ctx.spy(
+        declineInvitationAsync.statusesAtom,
+    )
+    const declineError = ctx.spy(declineInvitationAsync.errorAtom)
+    const acceptErrorStatus = (acceptError as InvitationError | null)?.status
+    const shouldShowLoginAction = isAcceptRejected && acceptErrorStatus === 409
+
+    useEffect(() => {
+        acceptInvitationAsync.errorAtom.reset(ctx)
+    }, [jwt])
+
+    const handleOpenLogin = () => {
+        loginModalOpenAtom(ctx, true)
+    }
 
     const handleAcceptInvitation = async () => {
         if (!token) {
@@ -48,7 +76,7 @@ export const InvitationsPage = reatomComponent(({ ctx }) => {
         }
 
         if (!jwt) {
-            loginModalOpenAtom(ctx, true)
+            handleOpenLogin()
             return
         }
 
@@ -56,7 +84,25 @@ export const InvitationsPage = reatomComponent(({ ctx }) => {
             acceptInvitationAsync.errorAtom.reset(ctx)
             const result = await acceptInvitationAsync(ctx, token)
 
-            navigate(`/companies/${result.company.id}`)
+            navigate(`/company/${result.companyId}`)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const handleDeclineInvitation = async () => {
+        if (!token) {
+            return
+        }
+
+        if (!jwt) {
+            handleOpenLogin()
+            return
+        }
+
+        try {
+            declineInvitationAsync.errorAtom.reset(ctx)
+            await declineInvitationAsync(ctx, token)
         } catch (error) {
             console.error(error)
         }
@@ -78,6 +124,10 @@ export const InvitationsPage = reatomComponent(({ ctx }) => {
         )
     }
 
+    const status = invitation.status
+    const isPendingInvitation = status === 'PENDING'
+    const statusMessage = status ? INVITATION_STATUS_MESSAGES[status] : null
+
     return (
         <SInvitationPage>
             <SInvitationContent>
@@ -85,32 +135,63 @@ export const InvitationsPage = reatomComponent(({ ctx }) => {
                     Приглашение в компанию
                 </SInvitationTitle>
 
-                <SInvitationText>
-                    Вас пригласили в компанию {invitation.companyName}
-                </SInvitationText>
+                {isPendingInvitation ? (
+                    <SInvitationText>
+                        Вас пригласили в компанию {invitation.companyName}
+                    </SInvitationText>
+                ) : (
+                    <Alert
+                        showIcon
+                        message={statusMessage ?? 'Приглашение недоступно'}
+                        type="info"
+                    />
+                )}
 
                 {isAcceptRejected && acceptError && (
                     <Alert showIcon title={acceptError.message} type="error" />
                 )}
 
-                {jwt ? (
-                    <Button
-                        loading={isAccepting}
-                        size="large"
-                        type="primary"
-                        onClick={handleAcceptInvitation}
-                    >
-                        Принять приглашение
-                    </Button>
-                ) : (
+                {isDeclineRejected && declineError && (
+                    <Alert showIcon title={declineError.message} type="error" />
+                )}
+
+                {isPendingInvitation && (
                     <Space wrap>
-                        <Button
-                            size="large"
-                            type="primary"
-                            onClick={() => loginModalOpenAtom(ctx, true)}
-                        >
-                            Войти
-                        </Button>
+                        {shouldShowLoginAction ? (
+                            <Button
+                                size="large"
+                                type="primary"
+                                onClick={handleOpenLogin}
+                            >
+                                Войти
+                            </Button>
+                        ) : jwt ? (
+                            <>
+                                <Button
+                                    loading={isAccepting}
+                                    size="large"
+                                    type="primary"
+                                    onClick={handleAcceptInvitation}
+                                >
+                                    Принять приглашение
+                                </Button>
+                                <Button
+                                    loading={isDeclining}
+                                    size="large"
+                                    onClick={handleDeclineInvitation}
+                                >
+                                    Отклонить
+                                </Button>
+                            </>
+                        ) : (
+                            <Button
+                                size="large"
+                                type="primary"
+                                onClick={handleOpenLogin}
+                            >
+                                Войти
+                            </Button>
+                        )}
                     </Space>
                 )}
             </SInvitationContent>

@@ -1,7 +1,7 @@
 import {
     reatomAsync,
-    reatomResource,
-    withCache,
+    reatomResource, sleep,
+    withCache, withConcurrency,
     withDataAtom,
     withErrorAtom,
     withStatusesAtom,
@@ -11,19 +11,24 @@ import { tokenAtom, userAtom } from '$entities/auth.ts'
 import { companyMembersAtom } from '$entities/company.ts'
 
 import {
+    createCompanyInvitationRequest,
     deleteCompanyMembersRequest,
     deleteCompanyRequest,
+    getCompanyAccessUsersRequest,
     getCompanyMembersRequest,
+    revokeCompanyInvitationRequest,
+    searchCompanyInviteUsersRequest,
     updateCompanyRequest,
 } from '$shared/companies/companies.ts'
 import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
 
-import { MOCK_INVITE_USERS } from './company-invite-modal/company-invite-modal.constants.ts'
 import {
     inviteMemberModalOpenAtom,
     inviteMemberSearchAtom,
+    selectedInviteUserIdAtom,
+    selectedInviteUserRoleAtom,
 } from './company-invite-modal/company-invite-modal.reatom.ts'
-import { getFilteredInviteUsers } from './company-invite-modal/company-invite-modal.utils.ts'
+import type { InviteUser } from './company-invite-modal/company-invite-modal.types.ts'
 import {
     closeDeleteMemberModalAction,
     deleteMemberModalOpenAtom,
@@ -35,17 +40,51 @@ import {
     deleteCompanyModalOpenAtom,
     settingsModalOpenAtom,
 } from './company-settings-modal/company-settings-modal.reatom.ts'
-import type { CompanyMembersData, InviteSearchData } from './company.types.ts'
+import type {
+    CompanyAccessUsersData,
+    CompanyMembersData,
+    InviteSearchData,
+} from './company.types.ts'
 
-const searchInviteUsers = async (query: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 650))
+const INVITE_USER_COLORS = [
+    '#1677ff',
+    '#52c41a',
+    '#fa8c16',
+    '#722ed1',
+    '#13c2c2',
+    '#eb2f96',
+]
 
-    return getFilteredInviteUsers(MOCK_INVITE_USERS, query)
+const getInviteUserColor = (id: string) => {
+    const colorIndex = id
+        .split('')
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+
+    return INVITE_USER_COLORS[colorIndex % INVITE_USER_COLORS.length]
+}
+
+const mapInviteUser = (user: {
+    id: string
+    invitationId?: string
+    login: string
+    status: InviteUser['status']
+}): InviteUser => {
+    return {
+        color: getInviteUserColor(user.id),
+        email: '',
+        id: user.id,
+        invitationId: user.invitationId,
+        login: user.login,
+        name: user.login,
+        status: user.status,
+    }
 }
 
 export const membersResource = reatomResource<CompanyMembersData>(
     async (ctx) => {
-        const companyId = ctx.spy(selectedCompanyIdAtom)
+        const companyId = ctx.spy(selectedCompanyIdAtom as never) as
+            | string
+            | null
         const token = ctx.spy(tokenAtom)
 
         if (!companyId) {
@@ -85,23 +124,38 @@ export const inviteUsersResource = reatomResource<InviteSearchData>(
     async (ctx) => {
         const isOpen = ctx.spy(inviteMemberModalOpenAtom)
         const query = ctx.spy(inviteMemberSearchAtom).trim()
+        const companyId = ctx.spy(selectedCompanyIdAtom as never) as
+            | string
+            | null
+        const token = ctx.spy(tokenAtom)
 
-        if (!isOpen || !query) {
+        if (!isOpen || !query || !companyId) {
             return {
                 query,
                 users: [],
             }
         }
 
-        const users = await searchInviteUsers(query)
+        if (!token) {
+            throw new Error('Не авторизован')
+        }
+
+        await ctx.schedule(() => sleep(250))
+
+        const users = await searchCompanyInviteUsersRequest(
+            token,
+            companyId,
+            query,
+        )
 
         return {
             query,
-            users,
+            users: users.map(mapInviteUser),
         }
     },
     'inviteUsersResource',
 ).pipe(
+    withConcurrency(),
     withDataAtom({
         query: '',
         users: [],
@@ -109,6 +163,190 @@ export const inviteUsersResource = reatomResource<InviteSearchData>(
     withStatusesAtom(),
     withErrorAtom(),
 )
+
+export const companyAccessUsersResource =
+    reatomResource<CompanyAccessUsersData>(
+        async (ctx) => {
+            const isOpen = ctx.spy(settingsModalOpenAtom)
+            const companyId = ctx.spy(selectedCompanyIdAtom as never) as
+                | string
+                | null
+            const token = ctx.spy(tokenAtom)
+
+            if (!isOpen || !companyId) {
+                return {
+                    companyId: null,
+                    users: [],
+                }
+            }
+
+            if (!token) {
+                throw new Error('РќРµ Р°РІС‚РѕСЂРёР·РѕРІР°РЅ')
+            }
+
+            const users = await getCompanyAccessUsersRequest(token, companyId)
+
+            return {
+                companyId,
+                users,
+            }
+        },
+        'companyAccessUsersResource',
+    ).pipe(
+        withDataAtom({
+            companyId: null,
+            users: [],
+        }),
+        withStatusesAtom(),
+        withErrorAtom(),
+    )
+
+export const createInviteAsync = reatomAsync((ctx, companyId: string) => {
+    return ctx.schedule(async () => {
+        const token = ctx.get(tokenAtom)
+        const userId = ctx.get(selectedInviteUserIdAtom)
+        const inviteUsersData = ctx.get(inviteUsersResource.dataAtom)
+        const userRole = ctx.get(selectedInviteUserRoleAtom)
+
+        if (!token) {
+            throw new Error('РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё')
+        }
+
+        if (!userId) {
+            throw new Error('Р’С‹Р±РµСЂРёС‚Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ')
+        }
+
+        const invitation = await createCompanyInvitationRequest(
+            token,
+            companyId,
+            {
+                role: userRole,
+                userId,
+            },
+        )
+
+        inviteUsersResource.dataAtom(ctx, {
+            ...inviteUsersData,
+            users: inviteUsersData.users.map((user) =>
+                user.id === userId
+                    ? {
+                          ...user,
+                          invitationId: invitation.id,
+                          status: 'INVITED',
+                      }
+                    : user,
+            ),
+        })
+
+        const accessUsers = await getCompanyAccessUsersRequest(token, companyId)
+
+        companyAccessUsersResource.dataAtom(ctx, {
+            companyId,
+            users: accessUsers,
+        })
+
+        selectedInviteUserIdAtom(ctx, null)
+
+        return invitation
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
+
+export const revokeInviteAsync = reatomAsync(
+    (ctx, payload: { companyId: string; invitationId: string; userId: string }) => {
+        return ctx.schedule(async () => {
+            const token = ctx.get(tokenAtom)
+            const inviteUsersData = ctx.get(inviteUsersResource.dataAtom)
+
+            if (!token) {
+                throw new Error('РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё')
+            }
+
+            const result = await revokeCompanyInvitationRequest(
+                token,
+                payload.companyId,
+                payload.invitationId,
+            )
+
+            inviteUsersResource.dataAtom(ctx, {
+                ...inviteUsersData,
+                users: inviteUsersData.users.map((user) =>
+                    user.id === payload.userId
+                        ? {
+                              ...user,
+                              invitationId: undefined,
+                              status: 'CAN_INVITE',
+                          }
+                    : user,
+                ),
+            })
+
+            const accessUsers = await getCompanyAccessUsersRequest(
+                token,
+                payload.companyId,
+            )
+
+            companyAccessUsersResource.dataAtom(ctx, {
+                companyId: payload.companyId,
+                users: accessUsers,
+            })
+
+            return result
+        })
+    },
+).pipe(withStatusesAtom(), withErrorAtom())
+
+export const deleteInviteMemberAsync = reatomAsync(
+    (ctx, payload: { companyId: string; userId: string }) => {
+        return ctx.schedule(async () => {
+            const token = ctx.get(tokenAtom)
+            const inviteUsersData = ctx.get(inviteUsersResource.dataAtom)
+
+            if (!token) {
+                throw new Error('РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё')
+            }
+
+            const result = await deleteCompanyMembersRequest(
+                token,
+                payload.userId,
+                payload.companyId,
+            )
+            const members = await getCompanyMembersRequest(
+                token,
+                payload.companyId,
+            )
+
+            companyMembersAtom(ctx, members)
+            membersResource.dataAtom(ctx, {
+                companyId: payload.companyId,
+                members,
+            })
+
+            const accessUsers = await getCompanyAccessUsersRequest(
+                token,
+                payload.companyId,
+            )
+
+            companyAccessUsersResource.dataAtom(ctx, {
+                companyId: payload.companyId,
+                users: accessUsers,
+            })
+
+            inviteUsersResource.dataAtom(ctx, {
+                ...inviteUsersData,
+                users: inviteUsersData.users.map((user) =>
+                    user.id === payload.userId
+                        ? {
+                              ...user,
+                              status: 'CAN_INVITE',
+                          }
+                        : user,
+                ),
+            })
+
+            return result
+        })
+    },
+).pipe(withStatusesAtom(), withErrorAtom())
 
 export const updateNameAsync = reatomAsync((ctx, companyId: string) => {
     return ctx.schedule(async () => {
@@ -200,12 +438,18 @@ export const deleteMemberAsync = reatomAsync((ctx, companyId: string) => {
         )
 
         const members = await getCompanyMembersRequest(token, companyId)
+        const accessUsers = await getCompanyAccessUsersRequest(token, companyId)
 
         companyMembersAtom(ctx, members)
 
         membersResource.dataAtom(ctx, {
             companyId,
             members,
+        })
+
+        companyAccessUsersResource.dataAtom(ctx, {
+            companyId,
+            users: accessUsers,
         })
 
         closeDeleteMemberModalAction(ctx)

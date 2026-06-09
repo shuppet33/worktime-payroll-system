@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react'
 
-import { Button, Checkbox, Input } from 'antd'
+import { Button, Input } from 'antd'
 import { SearchOutlined, UserAddOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
 
+import {
+    companyAccessUsersResource,
+    revokeInviteAsync,
+} from '$features/company/company.service.ts'
 import { openInviteMemberModalAction } from '$features/company/company-invite-modal/company-invite-modal.reatom.ts'
+import { openDeleteMemberModalAction } from '$features/company/company-member-modal/company-member-modal.reatom.ts'
 
-import { appThemeAtom } from '$shared/theme.ts'
+import { selectedCompanyIdAtom } from '$shared/companies/selected-company.ts'
+import { type AppTheme,appThemeAtom } from '$shared/theme.ts'
 
-import { MOCK_INVITED_USERS } from '../access-section.constants.ts'
-import type { InvitedUserRole } from '../access-section.types.ts'
+import type { InvitedUser, InvitedUserRole } from '../access-section.types.ts'
 import { getFilteredInvitedUsers } from '../access-section.utils.ts'
 
 import { InvitedUserRow } from './invited-user-row.view.tsx'
@@ -22,64 +27,79 @@ import {
     SAccessToolbar,
     SEmptyAccessText,
     SInvitedList,
-    SSelectAll,
 } from './styles.ts'
 
+const ACCESS_USER_COLORS = [
+    '#1677ff',
+    '#52c41a',
+    '#fa8c16',
+    '#722ed1',
+    '#13c2c2',
+    '#eb2f96',
+]
+
+const getAccessUserColor = (id: string) => {
+    const colorIndex = id
+        .split('')
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+
+    return ACCESS_USER_COLORS[colorIndex % ACCESS_USER_COLORS.length]
+}
+
 export const AccessSection = reatomComponent(({ ctx }) => {
-    const theme = ctx.spy(appThemeAtom)
+    const theme = ctx.spy(appThemeAtom as never) as AppTheme
+    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom as never) as
+        | string
+        | null
+    const accessUsersData = ctx.spy(companyAccessUsersResource.dataAtom)
+    const { isPending: isLoading, isRejected: isError } = ctx.spy(
+        companyAccessUsersResource.statusesAtom,
+    )
     const [accessSearch, setAccessSearch] = useState('')
-    const [invitedUsers, setInvitedUsers] = useState(MOCK_INVITED_USERS)
-    const [selectedInviteIds, setSelectedInviteIds] = useState<string[]>([])
+
+    const accessUsers =
+        accessUsersData.companyId === selectedCompanyId
+            ? accessUsersData.users
+            : []
+
+    const invitedUsers = useMemo<InvitedUser[]>(
+        () =>
+            accessUsers.map((user) => ({
+                color: getAccessUserColor(user.id),
+                id: user.id,
+                invitationId: user.invitationId,
+                login: user.login,
+                name: user.login,
+                role: user.role as InvitedUserRole,
+                status: user.status,
+            })),
+        [accessUsers],
+    )
 
     const filteredInvitedUsers = useMemo(
         () => getFilteredInvitedUsers(invitedUsers, accessSearch),
         [accessSearch, invitedUsers],
     )
 
-    const filteredIds = filteredInvitedUsers.map((user) => user.id)
-    const hasSelectedFilteredUsers = selectedInviteIds.some((id) =>
-        filteredIds.includes(id),
-    )
-    const hasFilteredUsers = filteredIds.length > 0
-    const isAllFilteredSelected =
-        hasFilteredUsers &&
-        filteredIds.every((id) => selectedInviteIds.includes(id))
+    const handleDeleteUser = (userId: string) => {
+        openDeleteMemberModalAction(ctx, userId)
+    }
 
-    const handleSelectAll = (event: { target: { checked: boolean } }) => {
-        if (!event.target.checked) {
-            setSelectedInviteIds((ids) =>
-                ids.filter((id) => !filteredIds.includes(id)),
-            )
+    const handleRevokeUser = (userId: string, invitationId: string) => {
+        if (!selectedCompanyId) {
             return
         }
 
-        setSelectedInviteIds((ids) =>
-            Array.from(new Set([...ids, ...filteredIds])),
-        )
+        revokeInviteAsync(ctx, {
+            companyId: selectedCompanyId,
+            invitationId,
+            userId,
+        })
     }
 
-    const handleSelectUser = (userId: string, checked: boolean) => {
-        setSelectedInviteIds((ids) =>
-            checked ? [...ids, userId] : ids.filter((id) => id !== userId),
-        )
-    }
-
-    const handleDeleteUser = (userId: string) => {
-        setInvitedUsers((users) => users.filter((user) => user.id !== userId))
-        setSelectedInviteIds((ids) => ids.filter((id) => id !== userId))
-    }
-
-    const handleChangeUserRole = (userId: string, role: InvitedUserRole) => {
-        setInvitedUsers((users) =>
-            users.map((user) =>
-                user.id === userId
-                    ? {
-                          ...user,
-                          role,
-                      }
-                    : user,
-            ),
-        )
+    const handleChangeUserRole = (_userId: string, _role: InvitedUserRole) => {
+        void _userId
+        void _role
     }
 
     return (
@@ -98,19 +118,6 @@ export const AccessSection = reatomComponent(({ ctx }) => {
 
             <SAccessPanel $theme={theme}>
                 <SAccessToolbar $theme={theme}>
-                    <SSelectAll>
-                        <Checkbox
-                            checked={isAllFilteredSelected}
-                            disabled={!hasFilteredUsers}
-                            indeterminate={
-                                hasSelectedFilteredUsers &&
-                                !isAllFilteredSelected
-                            }
-                            onChange={handleSelectAll}
-                        />
-                        Select all
-                    </SSelectAll>
-
                     <Input
                         allowClear
                         placeholder="Find a collaborator..."
@@ -123,16 +130,23 @@ export const AccessSection = reatomComponent(({ ctx }) => {
                 </SAccessToolbar>
 
                 <SInvitedList>
-                    {filteredInvitedUsers.length ? (
+                    {isLoading ? (
+                        <SEmptyAccessText $theme={theme}>
+                            Загружаем пользователей...
+                        </SEmptyAccessText>
+                    ) : isError ? (
+                        <SEmptyAccessText $theme={theme}>
+                            Не удалось загрузить пользователей
+                        </SEmptyAccessText>
+                    ) : filteredInvitedUsers.length ? (
                         filteredInvitedUsers.map((user) => (
                             <InvitedUserRow
-                                key={user.id}
-                                isSelected={selectedInviteIds.includes(user.id)}
+                                key={`${user.status}-${user.id}`}
                                 theme={theme}
                                 user={user}
                                 onChangeRole={handleChangeUserRole}
                                 onDelete={handleDeleteUser}
-                                onSelect={handleSelectUser}
+                                onRevoke={handleRevokeUser}
                             />
                         ))
                     ) : (

@@ -64,7 +64,7 @@ export const Header = reatomComponent<HeaderProps>(
                                 selectedKeys: [selectedCompany.company_id],
                                 onClick: ({ key }) => {
                                     selectedCompanyIdAtom(ctx, key)
-                                    navigate(`/companies/${key}`)
+                                    navigate(`/company/${key}`)
                                 },
                             }}
                             trigger={['click']}

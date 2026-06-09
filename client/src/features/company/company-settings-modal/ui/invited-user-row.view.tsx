@@ -1,4 +1,4 @@
-import { Avatar, Checkbox, Select } from 'antd'
+import { Avatar, Button, Select } from 'antd'
 import { DeleteOutlined } from '@ant-design/icons'
 
 import { ROLE_OPTIONS } from '../access-section.constants.ts'
@@ -14,16 +14,13 @@ import {
 } from './styles.ts'
 
 export const InvitedUserRow = ({
-    isSelected,
     theme,
     user,
     onChangeRole,
     onDelete,
-    onSelect,
+    onRevoke,
 }: InvitedUserRowProps) => {
-    const handleSelectUser = (event: { target: { checked: boolean } }) => {
-        onSelect(user.id, event.target.checked)
-    }
+    const isInvited = user.status === 'INVITED'
 
     const handleChangeRole = (role: typeof user.role) => {
         onChangeRole(user.id, role)
@@ -33,10 +30,16 @@ export const InvitedUserRow = ({
         onDelete(user.id)
     }
 
+    const handleRevokeUser = () => {
+        if (!user.invitationId) {
+            return
+        }
+
+        onRevoke(user.id, user.invitationId)
+    }
+
     return (
         <SInvitedUserRow $theme={theme}>
-            <Checkbox checked={isSelected} onChange={handleSelectUser} />
-
             <Avatar
                 style={{
                     backgroundColor: user.color,
@@ -53,22 +56,38 @@ export const InvitedUserRow = ({
             </SInvitedUserInfo>
 
             <SRoleSelectWrapper>
-                <Select
-                    aria-label={`Роль ${user.login}`}
-                    options={ROLE_OPTIONS}
-                    value={user.role}
-                    onChange={handleChangeRole}
-                />
+                {isInvited ? (
+                    <SInvitedUserRole $theme={theme}>
+                        Приглашен
+                    </SInvitedUserRole>
+                ) : (
+                    <Select
+                        aria-label={`Роль ${user.login}`}
+                        options={ROLE_OPTIONS}
+                        value={user.role}
+                        onChange={handleChangeRole}
+                    />
+                )}
             </SRoleSelectWrapper>
 
-            <SDeleteInviteButton
-                $theme={theme}
-                aria-label={`Удалить приглашение ${user.login}`}
-                type="button"
-                onClick={handleDeleteUser}
-            >
-                <DeleteOutlined />
-            </SDeleteInviteButton>
+            {isInvited ? (
+                <Button
+                    disabled={!user.invitationId}
+                    size="small"
+                    onClick={handleRevokeUser}
+                >
+                    Отозвать
+                </Button>
+            ) : (
+                <SDeleteInviteButton
+                    $theme={theme}
+                    aria-label={`Удалить ${user.login}`}
+                    type="button"
+                    onClick={handleDeleteUser}
+                >
+                    <DeleteOutlined />
+                </SDeleteInviteButton>
+            )}
         </SInvitedUserRow>
     )
 }

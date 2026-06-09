@@ -5,16 +5,17 @@ export type InvitedUserRole = 'ACCOUNTANT' | 'EMPLOYEE'
 export type InvitedUser = {
     color: string
     id: string
+    invitationId?: string | null
     login: string
     name: string
     role: InvitedUserRole
+    status: 'ALREADY_MEMBER' | 'INVITED'
 }
 
 export type InvitedUserRowProps = {
-    isSelected: boolean
     theme: AppTheme
     user: InvitedUser
     onChangeRole: (userId: string, role: InvitedUserRole) => void
     onDelete: (userId: string) => void
-    onSelect: (userId: string, checked: boolean) => void
+    onRevoke: (userId: string, invitationId: string) => void
 }

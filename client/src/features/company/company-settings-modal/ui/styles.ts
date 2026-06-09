@@ -53,32 +53,30 @@ export const SAccessPanel = styled.div<{ $theme: SettingsTheme }>`
 export const SAccessToolbar = styled.div<{ $theme: SettingsTheme }>`
     padding: 14px 16px;
 
-    display: grid;
-    grid-template-columns: 1fr minmax(220px, 280px);
-    gap: 12px;
-    align-items: center;
+    display: flex;
+    justify-content: flex-end;
 
     border-bottom: 1px solid
         ${({ $theme }) =>
             $theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb'};
 
+    .ant-input-affix-wrapper {
+        width: min(100%, 280px);
+    }
+
     @media (max-width: 720px) {
-        grid-template-columns: 1fr;
+        .ant-input-affix-wrapper {
+            width: 100%;
+        }
     }
 `
 
-export const SSelectAll = styled.label`
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-
-    font-size: 16px;
-    font-weight: 600;
-`
-
 export const SInvitedList = styled.div`
+    max-height: 360px;
+
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 `
 
 export const SInvitedUserRow = styled.div<{ $theme: SettingsTheme }>`
@@ -86,7 +84,7 @@ export const SInvitedUserRow = styled.div<{ $theme: SettingsTheme }>`
     padding: 14px;
 
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) 180px auto;
+    grid-template-columns: auto minmax(0, 1fr) 180px auto;
     gap: 14px;
     align-items: center;
 
@@ -99,7 +97,7 @@ export const SInvitedUserRow = styled.div<{ $theme: SettingsTheme }>`
     }
 
     @media (max-width: 520px) {
-        grid-template-columns: auto auto 1fr;
+        grid-template-columns: auto 1fr;
     }
 `
 
@@ -136,7 +134,7 @@ export const SRoleSelectWrapper = styled.div`
     }
 
     @media (max-width: 520px) {
-        grid-column: 2 / 4;
+        grid-column: 2;
     }
 `
 

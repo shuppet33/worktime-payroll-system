@@ -2,8 +2,19 @@ import { API_URL } from '$shared/api/url.ts'
 
 import type {
     AcceptInvitationResponse,
+    DeclineInvitationResponse,
     Invitation,
 } from './invitation.types.ts'
+
+export class InvitationRequestError extends Error {
+    status: number
+
+    constructor(message: string, status: number) {
+        super(message)
+        this.name = 'InvitationRequestError'
+        this.status = status
+    }
+}
 
 export const getInvitation = async (token: string): Promise<Invitation> => {
     const response = await fetch(`${API_URL}/invitations/${token}`, {
@@ -13,11 +24,16 @@ export const getInvitation = async (token: string): Promise<Invitation> => {
         },
     })
 
+    const data = await response.json()
+
     if (!response.ok) {
-        throw new Error('Приглашение не найдено')
+        throw new InvitationRequestError(
+            data.message ?? 'Приглашение не найдено',
+            response.status,
+        )
     }
 
-    return response.json()
+    return data
 }
 
 export const acceptInvitation = async (
@@ -35,7 +51,34 @@ export const acceptInvitation = async (
     const data = await response.json()
 
     if (!response.ok) {
-        throw new Error(data.message ?? 'Не удалось принять приглашение')
+        throw new InvitationRequestError(
+            data.message ?? 'Не удалось принять приглашение',
+            response.status,
+        )
+    }
+
+    return data
+}
+
+export const declineInvitation = async (
+    token: string,
+    jwt: string,
+): Promise<DeclineInvitationResponse> => {
+    const response = await fetch(`${API_URL}/invitations/${token}/decline`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`,
+        },
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new InvitationRequestError(
+            data.message ?? 'Не удалось отклонить приглашение',
+            response.status,
+        )
     }
 
     return data

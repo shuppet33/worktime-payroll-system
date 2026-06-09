@@ -86,6 +86,7 @@ export const invitationController = {
 
             const companyMemberId = nanoid(8)
 
+            console.log('LOOOG')
             const result = await invitationModel.acceptByToken({
                 companyMemberId,
                 token,

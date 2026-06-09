@@ -1,6 +1,3 @@
-import { Button, Input } from 'antd'
-import { SettingOutlined } from '@ant-design/icons'
-
 import { reatomComponent } from '@reatom/npm-react'
 
 import { Navigate, useNavigate, useParams } from 'react-router'
@@ -13,8 +10,8 @@ import {
     deleteMemberAsync,
     membersResource,
 } from '$features/company/company.service.ts'
-import { CompanyInviteModal } from '$features/company/company-invite-modal'
-import { CompanyMemberModal } from '$features/company/company-member-modal'
+import { CompanyAccountantDashboard } from '$features/company/company-accountant-dashboard'
+import { CompanyEmployeeDashboard } from '$features/company/company-employee-dashboard'
 import {
     closeDeleteMemberModalAction,
     deleteMemberModalOpenAtom,
@@ -22,13 +19,11 @@ import {
     selectedMemberForDeleteIdAtom,
     selectMemberAction,
 } from '$features/company/company-member-modal/company-member-modal.reatom.ts'
-import { CompanyMembersGrid } from '$features/company/company-members-grid'
-import { CompanySettingsModal } from '$features/company/company-settings-modal'
+import { CompanyOwnerDashboard } from '$features/company/company-owner-dashboard'
 import {
     deleteCompanyModalOpenAtom,
     openSettingsModalAction,
 } from '$features/company/company-settings-modal/company-settings-modal.reatom.ts'
-import { ConfirmModal } from '$features/shared/confirm-modal'
 
 import { userAtom } from '$entities/auth.ts'
 import { companyMembersAtom } from '$entities/company.ts'
@@ -41,10 +36,7 @@ import {
     SCompanyHeader,
     SCompanyPageWrapper,
     SCompanyRole,
-    SFilterActions,
-    SFilters,
     SPageTitle,
-    SSearchWrapper,
 } from './styles'
 
 export const CompanyPage = reatomComponent(({ ctx }) => {
@@ -60,11 +52,9 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
 
     const companies = user?.companies ?? []
     const firstCompany = companies[0]
-
     const savedCompany = companies.find(
         (company) => company.company_id === selectedCompanyId,
     )
-
     const selectedCompany = companies.find(
         (company) => company.company_id === companyId,
     )
@@ -77,7 +67,7 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
         const fallbackCompany = savedCompany ?? firstCompany
 
         return (
-            <Navigate to={`/companies/${fallbackCompany.company_id}`} replace />
+            <Navigate to={`/company/${fallbackCompany.company_id}`} replace />
         )
     }
 
@@ -100,10 +90,9 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
     const selectedMemberForDelete = members.find(
         (member) => member.id === selectedMemberForDeleteId,
     )
-    const canManageCompany = selectedCompany.role === 'OWNER'
 
-    const deleteMemberMessage = `Точно вы хотите удалить сотрудника "${selectedMemberForDelete?.login ?? ''}" из компании "${selectedCompany.company_name}"?`
-    const deleteCompanyMessage = `Точно вы хотите удалить компанию "${selectedCompany.company_name}"?`
+    const deleteMemberMessage = `Удалить "${selectedMemberForDelete?.login ?? ''}" из "${selectedCompany.company_name}"?`
+    const deleteCompanyMessage = `Удалить компанию "${selectedCompany.company_name}"?`
 
     const handleOpenSettings = () => {
         deleteAsync.errorAtom.reset(ctx)
@@ -133,7 +122,7 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
 
             if (nextCompany) {
                 selectedCompanyIdAtom(ctx, nextCompany.company_id)
-                navigate(`/companies/${nextCompany.company_id}`)
+                navigate(`/company/${nextCompany.company_id}`)
                 return
             }
 
@@ -151,67 +140,64 @@ export const CompanyPage = reatomComponent(({ ctx }) => {
             <SCompanyContent>
                 <SCompanyHeader>
                     <SPageTitle>{selectedCompany.company_name}</SPageTitle>
-
-                    <SCompanyRole>
-                        Должность: {selectedCompany.role}
-                    </SCompanyRole>
+                    <SCompanyRole>Роль: {selectedCompany.role}</SCompanyRole>
                 </SCompanyHeader>
 
-                <SFilters>
-                    <SFilterActions>
-                        {canManageCompany && (
-                            <Button
-                                aria-label="Настройки компании"
-                                icon={<SettingOutlined />}
-                                onClick={handleOpenSettings}
-                            />
-                        )}
-                    </SFilterActions>
+                {selectedCompany.role === 'OWNER' && (
+                    <CompanyOwnerDashboard
+                        company={selectedCompany}
+                        deleteCompanyError={deleteError}
+                        deleteCompanyLoading={deleteLoading}
+                        deleteCompanyMessage={deleteCompanyMessage}
+                        deleteCompanyModalOpen={deleteCompanyModalOpen}
+                        deleteCompanyRejected={deleteRejected}
+                        deleteMemberError={deleteMemberError}
+                        deleteMemberLoading={deleteMemberLoading}
+                        deleteMemberMessage={deleteMemberMessage}
+                        deleteMemberModalOpen={deleteMemberModalOpen}
+                        deleteMemberRejected={deleteMemberRejected}
+                        members={members}
+                        membersError={membersError}
+                        membersLoading={membersLoading}
+                        membersRejected={membersRejected}
+                        onCancelDeleteCompany={() => {
+                            deleteAsync.errorAtom.reset(ctx)
+                            deleteCompanyModalOpenAtom(ctx, false)
+                        }}
+                        onCancelDeleteMember={() => {
+                            deleteMemberAsync.errorAtom.reset(ctx)
+                            closeDeleteMemberModalAction(ctx)
+                        }}
+                        onConfirmDeleteCompany={handleConfirmDeleteCompany}
+                        onConfirmDeleteMember={handleConfirmDeleteMember}
+                        onDeleteMember={handleDeleteMember}
+                        onOpenSettings={handleOpenSettings}
+                        onSelectMember={(memberId) =>
+                            selectMemberAction(ctx, memberId)
+                        }
+                    />
+                )}
 
-                    <SSearchWrapper>
-                        <Input placeholder="Поиск по имени" />
-                    </SSearchWrapper>
-                </SFilters>
+                {selectedCompany.role === 'ACCOUNTANT' && (
+                    <CompanyAccountantDashboard
+                        company={selectedCompany}
+                        error={membersError}
+                        loading={membersLoading}
+                        members={members}
+                        showError={membersRejected}
+                        theme={appTheme}
+                        onSelectMember={(memberId) =>
+                            selectMemberAction(ctx, memberId)
+                        }
+                    />
+                )}
 
-                <CompanyMembersGrid
-                    canDelete={canManageCompany}
-                    error={membersError}
-                    loading={membersLoading}
-                    members={members}
-                    showError={membersRejected}
-                    onDelete={handleDeleteMember}
-                    onSelect={(memberId) => selectMemberAction(ctx, memberId)}
-                />
-
-                <CompanyMemberModal />
-                <CompanySettingsModal />
-                <CompanyInviteModal />
-
-                <ConfirmModal
-                    error={deleteMemberRejected ? deleteMemberError : undefined}
-                    loading={deleteMemberLoading}
-                    message={deleteMemberMessage}
-                    open={deleteMemberModalOpen}
-                    title="Удаление сотрудника"
-                    onCancel={() => {
-                        deleteMemberAsync.errorAtom.reset(ctx)
-                        closeDeleteMemberModalAction(ctx)
-                    }}
-                    onConfirm={handleConfirmDeleteMember}
-                />
-
-                <ConfirmModal
-                    error={deleteRejected ? deleteError : undefined}
-                    loading={deleteLoading}
-                    message={deleteCompanyMessage}
-                    open={deleteCompanyModalOpen}
-                    title="Удаление компании"
-                    onCancel={() => {
-                        deleteAsync.errorAtom.reset(ctx)
-                        deleteCompanyModalOpenAtom(ctx, false)
-                    }}
-                    onConfirm={handleConfirmDeleteCompany}
-                />
+                {selectedCompany.role === 'EMPLOYEE' && (
+                    <CompanyEmployeeDashboard
+                        company={selectedCompany}
+                        theme={appTheme}
+                    />
+                )}
             </SCompanyContent>
 
             <Footer />

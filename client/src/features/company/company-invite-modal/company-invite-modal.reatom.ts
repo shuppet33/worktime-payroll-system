@@ -1,5 +1,7 @@
 import { action, atom } from '@reatom/framework'
 
+import type { UserRole } from '$entities/auth.ts'
+
 export const inviteMemberModalOpenAtom = atom(
     false,
     'inviteMemberModalOpenAtom',
@@ -11,6 +13,8 @@ export const selectedInviteUserIdAtom = atom<string | null>(
     null,
     'selectedInviteUserIdAtom',
 )
+
+export const selectedInviteUserRoleAtom = atom<UserRole>('EMPLOYEE')
 
 export const openInviteMemberModalAction = action((ctx) => {
     inviteMemberSearchAtom(ctx, '')

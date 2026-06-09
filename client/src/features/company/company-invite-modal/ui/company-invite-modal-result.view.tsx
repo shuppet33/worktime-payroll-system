@@ -14,18 +14,33 @@ import {
     SUserName,
 } from './styles.ts'
 
-export const CompanyInviteModalResult = reatomComponent<CompanyInviteModalResultProps>(
-    ({ ctx, user }) => {
-        const theme = ctx.spy(appThemeAtom)
+type InviteTheme = 'light' | 'dark'
+
+export const CompanyInviteModalResult =
+    reatomComponent<CompanyInviteModalResultProps>(({ ctx, user }) => {
+        const theme = ctx.spy(appThemeAtom as never) as InviteTheme
+        const status = user.status ?? 'CAN_INVITE'
+        const isDisabled = status !== 'CAN_INVITE'
 
         const handleSelectUser = () => {
+            if (isDisabled) {
+                return
+            }
+
             selectedInviteUserIdAtom(ctx, user.id)
         }
 
+        const meta =
+            status === 'INVITED'
+                ? 'Пользователь уже приглашен'
+                : status === 'ALREADY_MEMBER'
+                  ? 'Уже в компании'
+                  : 'Пригласить'
+
         return (
             <SResultButton
+                $disabled={isDisabled}
                 $theme={theme}
-                type="button"
                 onClick={handleSelectUser}
             >
                 <SUserAvatar $color={user.color}>
@@ -35,10 +50,9 @@ export const CompanyInviteModalResult = reatomComponent<CompanyInviteModalResult
                 <SUserInfo>
                     <SUserName $theme={theme}>{user.name}</SUserName>
                     <SUserMeta $theme={theme}>
-                        {user.login} • Пригласить
+                        {user.login} · {meta}
                     </SUserMeta>
                 </SUserInfo>
             </SResultButton>
         )
-    },
-)
+    })

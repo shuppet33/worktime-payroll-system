@@ -20,6 +20,12 @@ companiesRouter.post(
     companyController.createInvitation,
 )
 
+companiesRouter.get(
+    '/:companyId/invitations',
+    authMiddleware,
+    companyController.getAccessUsers,
+)
+
 companiesRouter.patch(
     '/:companyId/invitations/:invitationId/revoke',
     authMiddleware,
@@ -30,6 +36,72 @@ companiesRouter.get(
     '/:companyId/members',
     authMiddleware,
     companyController.getMembers,
+)
+
+companiesRouter.get(
+    '/:companyId/employee/month',
+    authMiddleware,
+    companyController.getEmployeeMonth,
+)
+
+companiesRouter.get(
+    '/:companyId/employees/:employeeId/work-logs',
+    authMiddleware,
+    companyController.getWorkLogs,
+)
+
+companiesRouter.post(
+    '/:companyId/employees/:employeeId/work-logs',
+    authMiddleware,
+    companyController.createWorkLog,
+)
+
+companiesRouter.delete(
+    '/:companyId/work-logs/:workLogId',
+    authMiddleware,
+    companyController.deleteWorkLog,
+)
+
+companiesRouter.get(
+    '/:companyId/employees/:employeeId/bonuses',
+    authMiddleware,
+    companyController.getBonuses,
+)
+
+companiesRouter.post(
+    '/:companyId/employees/:employeeId/bonuses',
+    authMiddleware,
+    companyController.createBonus,
+)
+
+companiesRouter.delete(
+    '/:companyId/bonuses/:bonusId',
+    authMiddleware,
+    companyController.deleteBonus,
+)
+
+companiesRouter.post(
+    '/:companyId/employees/:employeeId/payrolls/calculate',
+    authMiddleware,
+    companyController.calculatePayroll,
+)
+
+companiesRouter.get(
+    '/:companyId/payrolls',
+    authMiddleware,
+    companyController.getCompanyPayrolls,
+)
+
+companiesRouter.get(
+    '/:companyId/employees/:employeeId/payrolls',
+    authMiddleware,
+    companyController.getEmployeePayrolls,
+)
+
+companiesRouter.patch(
+    '/:companyId/members/:memberId/role',
+    authMiddleware,
+    companyController.updateMemberRole,
 )
 
 companiesRouter.patch(

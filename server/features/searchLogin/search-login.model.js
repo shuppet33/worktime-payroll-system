@@ -2,8 +2,6 @@ import { connectDB } from '../../db/connect-db.js'
 
 export const searchLoginModel = {
     async searchByLogin(login) {
-        console.log('SEARCH LOGIN:', login)
-
         const { rows } = await connectDB.query(
             `
                 SELECT

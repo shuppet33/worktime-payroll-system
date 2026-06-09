@@ -59,7 +59,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
         }
 
         return (
-            <Navigate to={`/companies/${selectedCompany.company_id}`} replace />
+            <Navigate to={`/company/${selectedCompany.company_id}`} replace />
         )
     }
 
@@ -70,7 +70,7 @@ export const AccountPage = reatomComponent(({ ctx }) => {
             const company = await createCompanyAsync(ctx)
 
             selectedCompanyIdAtom(ctx, company.id)
-            navigate(`/companies/${company.id}`)
+            navigate(`/company/${company.id}`)
         } catch (error) {
             console.error(error)
         }

@@ -1,4 +1,4 @@
-import { Button, Input, Modal } from 'antd'
+import { Alert, Button, Input, Modal } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 
 import { reatomComponent } from '@reatom/npm-react'
@@ -6,7 +6,10 @@ import { reatomComponent } from '@reatom/npm-react'
 import VirtualList from '@rc-component/virtual-list'
 import type { ChangeEvent } from 'react'
 
-import { inviteUsersResource } from '$features/company/company.service.ts'
+import {
+    createInviteAsync,
+    inviteUsersResource,
+} from '$features/company/company.service.ts'
 
 import { userAtom } from '$entities/auth.ts'
 
@@ -38,15 +41,20 @@ import {
     SStatusText,
 } from './styles.ts'
 
+type InviteTheme = 'light' | 'dark'
+
 export const CompanyInviteModal = reatomComponent(({ ctx }) => {
     const user = ctx.spy(userAtom)
-    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom)
+    const selectedCompanyId = ctx.spy(selectedCompanyIdAtom) as string | null
     const isOpen = ctx.spy(inviteMemberModalOpenAtom)
     const query = ctx.spy(inviteMemberSearchAtom)
     const selectedInviteUserId = ctx.spy(selectedInviteUserIdAtom)
-    const theme = ctx.spy(appThemeAtom)
+    const theme = ctx.spy(appThemeAtom) as InviteTheme
     const inviteUsersData = ctx.spy(inviteUsersResource.dataAtom)
     const { isPending: isLoading } = ctx.spy(inviteUsersResource.statusesAtom)
+    const { isPending: isCreatingInvite, isRejected: isCreateInviteRejected } =
+        ctx.spy(createInviteAsync.statusesAtom)
+    const createInviteError = ctx.spy(createInviteAsync.errorAtom)
     const users = inviteUsersData.users
     const selectedUser = users.find((user) => user.id === selectedInviteUserId)
     const companyName =
@@ -63,6 +71,19 @@ export const CompanyInviteModal = reatomComponent(({ ctx }) => {
 
     const handleChangeQuery = (event: ChangeEvent<HTMLInputElement>) => {
         inviteMemberSearchAtom(ctx, event.target.value)
+    }
+
+    const handleCreateInvite = async () => {
+        if (!selectedCompanyId) {
+            return
+        }
+
+        try {
+            createInviteAsync.errorAtom.reset(ctx)
+            await createInviteAsync(ctx, selectedCompanyId)
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     return (
@@ -128,12 +149,21 @@ export const CompanyInviteModal = reatomComponent(({ ctx }) => {
                     </SResultsPanel>
                 )}
 
+                {isCreateInviteRejected && createInviteError && (
+                    <Alert
+                        showIcon
+                        title={createInviteError.message}
+                        type="error"
+                    />
+                )}
+
                 <SActions>
                     <Button onClick={handleClose}>Отмена</Button>
                     <Button
-                        type="primary"
                         disabled={!selectedUser}
-                        onClick={handleClose}
+                        loading={isCreatingInvite}
+                        type="primary"
+                        onClick={handleCreateInvite}
                     >
                         Пригласить
                     </Button>

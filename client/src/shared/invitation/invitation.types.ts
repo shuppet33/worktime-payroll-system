@@ -1,20 +1,25 @@
 import type { UserRole } from '$entities/auth.ts'
 
+export type InvitationStatus =
+    | 'ACCEPTED'
+    | 'DECLINED'
+    | 'EXPIRED'
+    | 'PENDING'
+    | 'REVOKED'
+
 export type Invitation = {
     companyId: string | null
     companyName: string | null
-    role: UserRole | null
     expiresAt: string | null
+    role: UserRole | null
+    status: InvitationStatus | null
 }
 
 export type AcceptInvitationResponse = {
-    company: {
-        id: string
-        name: string
-    }
-    member: {
-        id: string
-        role: UserRole
-    }
+    companyId: string
+    message: string
+}
+
+export type DeclineInvitationResponse = {
     message: string
 }

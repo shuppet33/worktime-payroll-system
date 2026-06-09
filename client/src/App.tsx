@@ -57,10 +57,7 @@ const App = reatomComponent(({ ctx }) => {
 
                 <Route element={<PrivateRoutes />}>
                     <Route path="/account" element={<AccountPage />} />
-                    <Route
-                        path="/companies/:companyId"
-                        element={<CompanyPage />}
-                    />
+                    <Route path="/company/:companyId" element={<CompanyPage />} />
                 </Route>
             </Routes>
         </ConfigProvider>

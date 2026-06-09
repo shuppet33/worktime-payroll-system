@@ -1,7 +1,9 @@
-import { Select } from 'antd';
+import { Select } from 'antd'
 
-import type { EmployeeCalendarProps } from './employee-calendar.types.ts';
-import { generateCalendarDays } from './generate-calendar-days.utils';
+import dayjs from 'dayjs'
+
+import type { EmployeeCalendarProps } from './employee-calendar.types.ts'
+import { generateCalendarDays } from './generate-calendar-days.utils'
 import {
     SCalendarCard,
     SCalendarTop,
@@ -12,136 +14,111 @@ import {
     SDaysGrid,
     SEmptyCell,
     SHint,
+    SPeriodControls,
     SWeekDay,
     SWeekDays,
-} from './styles';
+} from './styles'
 
-const MONTH_OPTIONS = [
-    {
-        value: 5,
-        label: 'Май',
-    },
-];
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1
 
-export const EmployeeCalendar =
-    ({
-        month,
-        onSelectDay,
-        paymentType,
-        selectedDay,
-        workDays,
-        year,
-    }: EmployeeCalendarProps) => {
-        const days =
-            generateCalendarDays(
-                month,
-                year,
-            );
+    return {
+        value: month,
+        label: dayjs().month(index).format('MMMM'),
+    }
+})
 
-        return (
-            <SCalendarCard>
-                <SCalendarTop>
-                    <SCardTitle>
-                        Календарь
-                    </SCardTitle>
+const currentYear = dayjs().year()
 
+const YEAR_OPTIONS = Array.from({ length: 7 }, (_, index) => {
+    const year = currentYear - 3 + index
+
+    return {
+        value: year,
+        label: String(year),
+    }
+})
+
+export const EmployeeCalendar = ({
+    loading = false,
+    month,
+    onMonthChange,
+    onSelectDay,
+    onYearChange,
+    paymentType,
+    selectedDay,
+    theme = 'dark',
+    workDays,
+    year,
+}: EmployeeCalendarProps) => {
+    const days = generateCalendarDays(month, year)
+
+    return (
+        <SCalendarCard $theme={theme}>
+            <SCalendarTop>
+                <SCardTitle>Календарь</SCardTitle>
+
+                <SPeriodControls>
                     <Select
                         value={month}
-                        style={{
-                            width: 100,
-                        }}
+                        style={{ width: 120 }}
                         options={MONTH_OPTIONS}
+                        onChange={onMonthChange}
                     />
-                </SCalendarTop>
 
-                <SWeekDays>
-                    <SWeekDay>
-                        Пн
-                    </SWeekDay>
-                    <SWeekDay>
-                        Вт
-                    </SWeekDay>
-                    <SWeekDay>
-                        Ср
-                    </SWeekDay>
-                    <SWeekDay>
-                        Чт
-                    </SWeekDay>
-                    <SWeekDay>
-                        Пт
-                    </SWeekDay>
-                    <SWeekDay>
-                        Сб
-                    </SWeekDay>
-                    <SWeekDay>
-                        Вс
-                    </SWeekDay>
-                </SWeekDays>
+                    <Select
+                        value={year}
+                        style={{ width: 96 }}
+                        options={YEAR_OPTIONS}
+                        onChange={onYearChange}
+                    />
+                </SPeriodControls>
+            </SCalendarTop>
 
-                <SDaysGrid>
-                    {days.map(
-                        (day, index) => {
-                            if (!day) {
-                                return (
-                                    <SEmptyCell
-                                        key={
-                                            index
-                                        }
-                                    />
-                                );
-                            }
+            <SWeekDays>
+                <SWeekDay>Пн</SWeekDay>
+                <SWeekDay>Вт</SWeekDay>
+                <SWeekDay>Ср</SWeekDay>
+                <SWeekDay>Чт</SWeekDay>
+                <SWeekDay>Пт</SWeekDay>
+                <SWeekDay>Сб</SWeekDay>
+                <SWeekDay>Вс</SWeekDay>
+            </SWeekDays>
 
-                            const dayData =
-                                workDays.find(
-                                    (item) =>
-                                        item.day === day,
-                                );
+            <SDaysGrid>
+                {days.map((day, index) => {
+                    if (!day) {
+                        return <SEmptyCell key={index} />
+                    }
 
-                            const worked =
-                                dayData?.worked ??
-                                true;
+                    const dayData = workDays.find((item) => item.day === day)
+                    const worked = dayData?.worked ?? true
 
-                            return (
-                                <SDayCard
-                                    key={day}
-                                    selected={
-                                        selectedDay ===
-                                        day
-                                    }
-                                    inactive={
-                                        paymentType ===
-                                        'fixed' &&
-                                        !worked
-                                    }
-                                    onClick={() =>
-                                        onSelectDay(day)
-                                    }
-                                >
-                                    <SDayNumber>
-                                        {day}
-                                    </SDayNumber>
+                    return (
+                        <SDayCard
+                            key={day}
+                            $theme={theme}
+                            selected={selectedDay === day}
+                            inactive={paymentType === 'fixed' && !worked}
+                            onClick={() => onSelectDay(day)}
+                        >
+                            <SDayNumber>{day}</SDayNumber>
 
-                                    <SDayHours>
-                                        {paymentType ===
-                                        'hourly'
-                                            ? dayData?.hours ||
-                                            '0ч'
-                                            : worked
-                                                ? 'Рабочий'
-                                                : 'Выходной'}
-                                    </SDayHours>
-                                </SDayCard>
-                            );
-                        },
-                    )}
-                </SDaysGrid>
+                            <SDayHours>
+                                {loading
+                                    ? '...'
+                                    : paymentType === 'hourly'
+                                      ? dayData?.hours || '0ч'
+                                      : worked
+                                        ? 'Рабочий'
+                                        : 'Выходной'}
+                            </SDayHours>
+                        </SDayCard>
+                    )
+                })}
+            </SDaysGrid>
 
-                <SHint>
-                    Нажмите на
-                    день, чтобы
-                    посмотреть
-                    детали
-                </SHint>
-            </SCalendarCard>
-        );
-    };
+            <SHint>Выберите день, чтобы посмотреть детали</SHint>
+        </SCalendarCard>
+    )
+}

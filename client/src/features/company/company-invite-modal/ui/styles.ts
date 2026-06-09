@@ -51,13 +51,16 @@ export const SResultsPanel = styled.div<{ $theme: InviteTheme }>`
             : '0 6px 20px rgba(15, 23, 42, 0.06)'};
 `
 
-export const SResultButton = styled.button<{ $theme: InviteTheme }>`
+export const SResultButton = styled.div<{
+    $disabled?: boolean
+    $theme: InviteTheme
+}>`
     width: 100%;
     height: 76px;
     padding: 14px 16px;
 
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     gap: 18px;
     align-items: center;
 
@@ -65,13 +68,17 @@ export const SResultButton = styled.button<{ $theme: InviteTheme }>`
     background: transparent;
     color: inherit;
     text-align: left;
-    cursor: pointer;
+    cursor: ${({ $disabled }) => ($disabled ? 'default' : 'pointer')};
 
     &:hover,
     &:focus-visible {
         outline: none;
-        background: ${({ $theme }) =>
-            $theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f8fafc'};
+        background: ${({ $disabled, $theme }) =>
+            $disabled
+                ? 'transparent'
+                : $theme === 'dark'
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : '#f8fafc'};
     }
 `
 

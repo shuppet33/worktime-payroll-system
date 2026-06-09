@@ -1,9 +1,16 @@
 import styled from "styled-components";
 
 import {SFloatingCard} from "$shared/styles";
+import type { AppTheme } from '$shared/theme.ts'
 
-export const SCalendarCard = styled(SFloatingCard)`
+export const SCalendarCard = styled(SFloatingCard)<{ $theme: AppTheme }>`
     padding: 24px;
+
+    background: ${({ $theme }) =>
+        $theme === 'dark' ? 'rgba(15, 23, 42, 0.65)' : '#ffffff'};
+
+    border-color: ${({ $theme }) =>
+        $theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#dbeafe'};
 `;
 
 export const SCalendarTop = styled.div`
@@ -12,6 +19,11 @@ export const SCalendarTop = styled.div`
     justify-content: space-between;
 
     margin-bottom: 24px;
+`;
+
+export const SPeriodControls = styled.div`
+    display: flex;
+    gap: 8px;
 `;
 
 export const SCardTitle = styled.h2`
@@ -47,6 +59,7 @@ export const SDaysGrid = styled.div`
 `;
 
 export const SDayCard = styled.div<{
+    $theme: AppTheme;
     selected: boolean;
     inactive?: boolean;
 }>`
@@ -63,16 +76,20 @@ export const SDayCard = styled.div<{
                     inactive ? 0.45 : 1};
 
     background:
-            ${({ selected }) =>
+            ${({ $theme, selected }) =>
                     selected
                             ? 'rgba(59,130,246,0.14)'
-                            : 'rgba(15,23,42,0.5)'};
+                            : $theme === 'dark'
+                                ? 'rgba(15,23,42,0.5)'
+                                : '#f8fafc'};
 
     border: 1px solid
-    ${({ selected }) =>
+    ${({ $theme, selected }) =>
             selected
                     ? 'rgba(59,130,246,0.5)'
-                    : 'rgba(255,255,255,0.08)'};
+                    : $theme === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : '#e2e8f0'};
 
     transition: 0.15s ease;
 

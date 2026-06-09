@@ -3,6 +3,22 @@ import { invitationModel } from '../invitations/invitations.model.js'
 import { userModel } from '../auth/users.model.js'
 import { nanoid } from 'nanoid'
 
+const canViewEmployeeData = (access, userId) => {
+    return (
+        access.requesterRole === 'OWNER' ||
+        access.requesterRole === 'ACCOUNTANT' ||
+        access.employeeUserId === userId
+    )
+}
+
+const canManageEmployeeData = (access) => {
+    return access.requesterRole === 'OWNER' || access.requesterRole === 'ACCOUNTANT'
+}
+
+const toMoney = (value) => {
+    return Math.round(Number(value || 0) * 100) / 100
+}
+
 export const companyController = {
     async create(req, res) {
         try {
@@ -191,6 +207,397 @@ export const companyController = {
         }
     },
 
+    async getEmployeeMonth(req, res) {
+        try {
+            const { companyId } = req.params
+            const month = Number(req.query.month)
+            const year = Number(req.query.year)
+
+            if (!companyId) {
+                return res.status(400).json({
+                    message: 'companyId is required',
+                })
+            }
+
+            if (!Number.isInteger(month) || month < 1 || month > 12) {
+                return res.status(400).json({
+                    message: 'month must be an integer from 1 to 12',
+                })
+            }
+
+            if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+                return res.status(400).json({
+                    message: 'year must be an integer from 2000 to 2100',
+                })
+            }
+
+            const result = await companyModel.getEmployeeMonth({
+                companyId,
+                userId: req.user.id,
+                month,
+                year,
+            })
+
+            if (!result) {
+                return res.status(404).json({
+                    message: 'Company not found or access denied',
+                })
+            }
+
+            return res.status(200).json(result)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to load employee calendar',
+            })
+        }
+    },
+
+    async getWorkLogs(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const month = req.query.month ? Number(req.query.month) : undefined
+            const year = req.query.year ? Number(req.query.year) : undefined
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canViewEmployeeData(access, req.user.id)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const workLogs = await companyModel.getWorkLogs({
+                employeeId,
+                month,
+                year,
+            })
+
+            return res.status(200).json(workLogs)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to load work logs',
+            })
+        }
+    },
+
+    async createWorkLog(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const { workDate, hoursWorked, overtimeHours = 0 } = req.body
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canManageEmployeeData(access)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            if (!workDate || Number(hoursWorked) < 0 || Number(overtimeHours) < 0) {
+                return res.status(400).json({ message: 'Invalid work log data' })
+            }
+
+            const workLog = await companyModel.createWorkLog({
+                id: nanoid(8),
+                employeeId,
+                workDate,
+                hoursWorked: Number(hoursWorked),
+                overtimeHours: Number(overtimeHours),
+            })
+
+            return res.status(201).json(workLog)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to create work log',
+            })
+        }
+    },
+
+    async deleteWorkLog(req, res) {
+        try {
+            const { companyId, workLogId } = req.params
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({ message: 'Company not found' })
+            }
+
+            if (!['OWNER', 'ACCOUNTANT'].includes(company.role)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const result = await companyModel.deleteWorkLog({
+                companyId,
+                workLogId,
+            })
+
+            if (!result) {
+                return res.status(404).json({ message: 'Work log not found' })
+            }
+
+            return res.status(200).json(result)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to delete work log',
+            })
+        }
+    },
+
+    async getBonuses(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canViewEmployeeData(access, req.user.id)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const bonuses = await companyModel.getBonuses({ employeeId })
+
+            return res.status(200).json(bonuses)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to load bonuses',
+            })
+        }
+    },
+
+    async createBonus(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const { amount, description } = req.body
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canManageEmployeeData(access)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            if (Number(amount) <= 0) {
+                return res.status(400).json({ message: 'Invalid bonus amount' })
+            }
+
+            const bonus = await companyModel.createBonus({
+                id: nanoid(8),
+                employeeId,
+                amount: Number(amount),
+                description: typeof description === 'string' ? description : '',
+            })
+
+            return res.status(201).json(bonus)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to create bonus',
+            })
+        }
+    },
+
+    async deleteBonus(req, res) {
+        try {
+            const { companyId, bonusId } = req.params
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({ message: 'Company not found' })
+            }
+
+            if (!['OWNER', 'ACCOUNTANT'].includes(company.role)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const result = await companyModel.deleteBonus({
+                companyId,
+                bonusId,
+            })
+
+            if (!result) {
+                return res.status(404).json({ message: 'Bonus not found' })
+            }
+
+            return res.status(200).json(result)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to delete bonus',
+            })
+        }
+    },
+
+    async calculatePayroll(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const month = Number(req.body.month)
+            const year = Number(req.body.year)
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canManageEmployeeData(access)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            if (!Number.isInteger(month) || month < 1 || month > 12) {
+                return res.status(400).json({ message: 'Invalid month' })
+            }
+
+            if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+                return res.status(400).json({ message: 'Invalid year' })
+            }
+
+            const input = await companyModel.getEmployeePayrollInput({
+                companyId,
+                employeeId,
+                month,
+                year,
+            })
+
+            if (!input) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            const hourlyRate = Number(input.hourlyRate || 0)
+            const baseSalary =
+                input.paymentType === 'FIXED'
+                    ? Number(input.fixedSalary || 0)
+                    : Number(input.hoursWorked || 0) * hourlyRate
+            const overtimePayment = Number(input.overtimeHours || 0) * hourlyRate * 1.5
+            const bonusPayment = Number(input.bonusPayment || 0)
+            const grossSalary = baseSalary + overtimePayment + bonusPayment
+            const ndflAmount = grossSalary * 0.13
+            const finalSalary = grossSalary - ndflAmount
+
+            const payroll = await companyModel.createPayroll({
+                id: nanoid(8),
+                employeeId,
+                month,
+                year,
+                paymentType: input.paymentType,
+                baseSalary: toMoney(baseSalary),
+                overtimePayment: toMoney(overtimePayment),
+                bonusPayment: toMoney(bonusPayment),
+                ndflAmount: toMoney(ndflAmount),
+                finalSalary: toMoney(finalSalary),
+            })
+
+            return res.status(201).json(payroll)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to calculate payroll',
+            })
+        }
+    },
+
+    async getCompanyPayrolls(req, res) {
+        try {
+            const { companyId } = req.params
+            const company = await companyModel.getCompanyById({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!company) {
+                return res.status(404).json({ message: 'Company not found' })
+            }
+
+            if (!['OWNER', 'ACCOUNTANT'].includes(company.role)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const payrolls = await companyModel.getCompanyPayrolls({ companyId })
+
+            return res.status(200).json(payrolls)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to load payrolls',
+            })
+        }
+    },
+
+    async getEmployeePayrolls(req, res) {
+        try {
+            const { companyId, employeeId } = req.params
+            const access = await companyModel.getEmployeeAccess({
+                companyId,
+                employeeId,
+                userId: req.user.id,
+            })
+
+            if (!access) {
+                return res.status(404).json({ message: 'Employee not found' })
+            }
+
+            if (!canViewEmployeeData(access, req.user.id)) {
+                return res.status(403).json({ message: 'Access denied' })
+            }
+
+            const payrolls = await companyModel.getEmployeePayrolls({
+                employeeId,
+            })
+
+            return res.status(200).json(payrolls)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'Failed to load employee payrolls',
+            })
+        }
+    },
+
     async updateMemberRole(req, res) {
         try {
             const { companyId, memberId } = req.params
@@ -297,12 +704,36 @@ export const companyController = {
         }
     },
 
+    async getAccessUsers(req, res) {
+        try {
+            const { companyId } = req.params
+
+            const users = await companyModel.getCompanyAccessUsers({
+                companyId,
+                userId: req.user.id,
+            })
+
+            if (!users) {
+                return res.status(404).json({
+                    message: 'РљРѕРјРїР°РЅРёСЏ РЅРµ РЅР°Р№РґРµРЅР° РёР»Рё РЅРµС‚ РґРѕСЃС‚СѓРїР°',
+                })
+            }
+
+            return res.status(200).json(users)
+        } catch (error) {
+            console.error(error)
+
+            return res.status(500).json({
+                message: 'РћС€РёР±РєР° РїРѕР»СѓС‡РµРЅРёСЏ РґРѕСЃС‚СѓРїРѕРІ',
+            })
+        }
+    },
+
     async createInvitation(req, res) {
         try {
             const { companyId } = req.params
             const { role, userId } = req.body
 
-            const allowedCreatorRoles = ['OWNER', 'ACCOUNTANT']
             const allowedInvitationRoles = ['EMPLOYEE', 'ACCOUNTANT']
 
             if (!companyId) {
@@ -340,7 +771,7 @@ export const companyController = {
                 })
             }
 
-            if (!allowedCreatorRoles.includes(company.role)) {
+            if (company.role !== 'OWNER') {
                 return res.status(403).json({
                     message: 'Недостаточно прав',
                 })
@@ -446,7 +877,6 @@ export const companyController = {
     async revokeInvitation(req, res) {
         try {
             const { companyId, invitationId } = req.params
-            const allowedCreatorRoles = ['OWNER', 'ACCOUNTANT']
 
             if (!invitationId) {
                 return res.status(400).json({
@@ -465,7 +895,7 @@ export const companyController = {
                 })
             }
 
-            if (!allowedCreatorRoles.includes(company.role)) {
+            if (company.role !== 'OWNER') {
                 return res.status(403).json({
                     message: 'Недостаточно прав',
                 })

@@ -5,10 +5,11 @@ import {
     withStatusesAtom,
 } from '@reatom/framework'
 
-import { tokenAtom, userAtom } from '$entities/auth.ts'
+import { tokenAtom } from '$entities/auth.ts'
 
 import {
     acceptInvitation,
+    declineInvitation,
     getInvitation,
 } from '$shared/invitation/invitation.ts'
 
@@ -20,6 +21,7 @@ export const getInvitationAsync = reatomAsync(async (ctx, token: string) => {
         companyName: null,
         expiresAt: null,
         role: null,
+        status: null,
     }),
     withStatusesAtom(),
     withErrorAtom(),
@@ -28,7 +30,6 @@ export const getInvitationAsync = reatomAsync(async (ctx, token: string) => {
 export const acceptInvitationAsync = reatomAsync(async (ctx, token: string) => {
     return ctx.schedule(async () => {
         const jwt = ctx.get(tokenAtom)
-        const user = ctx.get(userAtom)
 
         if (!jwt) {
             throw new Error('Войдите, чтобы принять приглашение')
@@ -36,23 +37,30 @@ export const acceptInvitationAsync = reatomAsync(async (ctx, token: string) => {
 
         const result = await acceptInvitation(token, jwt)
 
-        if (user) {
-            userAtom(ctx, {
-                ...user,
-                companies: [
-                    ...(user.companies ?? []).filter(
-                        (company) =>
-                            company.company_id !== result.company.id,
-                    ),
-                    {
-                        company_id: result.company.id,
-                        company_name: result.company.name,
-                        id: result.member.id,
-                        role: result.member.role,
-                    },
-                ],
-            })
+        getInvitationAsync.dataAtom(ctx, {
+            ...ctx.get(getInvitationAsync.dataAtom),
+            companyId: result.companyId,
+            status: 'ACCEPTED',
+        })
+
+        return result
+    })
+}).pipe(withStatusesAtom(), withErrorAtom())
+
+export const declineInvitationAsync = reatomAsync(async (ctx, token: string) => {
+    return ctx.schedule(async () => {
+        const jwt = ctx.get(tokenAtom)
+
+        if (!jwt) {
+            throw new Error('Войдите, чтобы отклонить приглашение')
         }
+
+        const result = await declineInvitation(token, jwt)
+
+        getInvitationAsync.dataAtom(ctx, {
+            ...ctx.get(getInvitationAsync.dataAtom),
+            status: 'DECLINED',
+        })
 
         return result
     })
